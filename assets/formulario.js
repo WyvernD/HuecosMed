@@ -1,5 +1,6 @@
+import React from 'react';
 import {
-  Alert,
+  Alert, Dimensions,
   Image,
   ImageBackground,
   SafeAreaView,
@@ -11,7 +12,16 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {Colors} from 'react-native/Libraries/NewAppScreen';
+
+import {
+  Header,
+  LearnMoreLinks,
+  Colors,
+  DebugInstructions,
+  ReloadInstructions,
+} from 'react-native/Libraries/NewAppScreen';
+
+const {width, height} = Dimensions.get('window');
 
 const txtUbicacion = 'Ubicación actual del daño en la via';
 const txtUbicDecripcion =
@@ -25,48 +35,46 @@ const urlImage = {
     'https://i.pinimg.com/originals/71/2e/11/712e11b2786070e9a9f941abb65c7335.png',
 };
 
-function Formulario() {
+function getFormulario() {
   return (
     <>
       <StatusBar barStyle="dark-content" />
-      <SafeAreaView styles={stylesIndex.body}>
-        <ScrollView styles={stylesIndex.scrollView}>
-          <ImageBackground source={urlImage} style={stylesIndex.image}>
-            <View styles={stylesIndex.contenedorHead}>
-              <View styles={stylesIndex.headerDiv}>
-                <Text styles={stylesIndex.texthead}>
+      <SafeAreaView styles={style.body}>
+        <ScrollView styles={style.scrollView}>
+          <ImageBackground source={urlImage} style={style.image}>
+            <View styles={style.contenedorHead}>
+              <View styles={style.headerDiv}>
+                <Text styles={style.texthead}>
                   {'Reportar a HUECOSMED'}
                 </Text>
               </View>
             </View>
-            <View styles={stylesIndex.contenedor}>
-              <View styles={stylesIndex.viewCampos}>
-                <Text styles={stylesIndex.Text}>{txtUbicacion}</Text>
-                <TextInput style={stylesIndex.TextInput} />
-                <Text styles={stylesIndex.ayuda}>{txtUbicDecripcion}</Text>
+            <View styles={style.contenedor}>
+              <View styles={style.viewCampos}>
+                <Text styles={style.Text}>{txtUbicacion}</Text>
+                <TextInput style={style.TextInput} />
+                <Text styles={style.ayuda}>{txtUbicDecripcion}</Text>
               </View>
-              <View styles={stylesIndex.viewCampos}>
-                <Text styles={stylesIndex.Text}>{txtPunto}</Text>
+              <View styles={style.viewCampos}>
+                <Text styles={style.Text}>{txtPunto}</Text>
                 <TextInput
-                  styles={stylesIndex.TextInput}
+                  styles={style.TextInput}
                   placeholder={'Ejemplo: Hueco cerca al consumo de la 80'}
                 />
-                <Text styles={stylesIndex.ayuda}>{txtPuntoDEscripcion}</Text>
+                <Text styles={style.ayuda}>{txtPuntoDEscripcion}</Text>
               </View>
             </View>
-            <View styles={stylesIndex.viewFooter}>
-              <View styles={stylesIndex.footer}>
-                <Text styles={stylesIndex.TextFooter}>
+            <View styles={style.viewFooter}>
+              <View styles={style.footer}>
+                <Text styles={style.TextFooter}>
                   {'Agregar fotografia real (Opcional)'}
                 </Text>
-                <View styles={stylesIndex.viewCamposFotos}>
+                <View styles={style.viewCamposFotos}>
                   <View>
-                    <Text styles={stylesIndex.Txtfoto}>
-                      {'Tomar fotografia'}
-                    </Text>
-                    <View style={stylesIndex.viewicono}>
+                    <Text styles={style.Txtfoto}>{'Tomar fotografia'}</Text>
+                    <View style={style.viewicono}>
                       <Image
-                        style={stylesIndex.icono}
+                        style={style.icono}
                         source={{
                           uri:
                             'https://image.flaticon.com/icons/png/512/56/56887.png',
@@ -75,12 +83,10 @@ function Formulario() {
                     </View>
                   </View>
                   <View>
-                    <Text style={stylesIndex.Txtfoto}>
-                      {'Agregar de galeria'}
-                    </Text>
-                    <View style={stylesIndex.viewicono}>
+                    <Text style={style.Txtfoto}>{'Agregar de galeria'}</Text>
+                    <View style={style.viewicono}>
                       <Image
-                        style={stylesIndex.icono}
+                        style={style.icono}
                         source={{
                           uri:
                             'https://image.flaticon.com/icons/png/512/665/665896.png',
@@ -91,7 +97,7 @@ function Formulario() {
                 </View>
                 <View>
                   <TouchableOpacity
-                    style={stylesIndex.buttonOk}
+                    style={style.buttonOk}
                     onPress={() => Alert.alert('Reporte...')}>
                     <Text>{'Reportar'}</Text>
                   </TouchableOpacity>
@@ -105,7 +111,7 @@ function Formulario() {
   );
 }
 
-const stylesIndex = StyleSheet.create({
+const style = StyleSheet.create({
   TextInput: {
     width: 'auto',
     height: 45,
@@ -243,4 +249,4 @@ const stylesIndex = StyleSheet.create({
   },
 });
 
-export default Formulario;
+export default getFormulario();

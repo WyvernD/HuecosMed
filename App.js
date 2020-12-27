@@ -17,24 +17,48 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import Formulario from './assets/formulario';
+import getFormulario from './assets/formulario';
 
 import Swiper from 'react-native-swiper';
+
+import SwiperCore, {EffectFade} from 'swiper';
+SwiperCore.use([EffectFade]);
 
 const {width, height} = Dimensions.get('window');
 
 let objInicial = true;
 
-const App: () => React$Node = () => {
-  return objInicial ? getBanner() : Formulario;
+let App: () => React$Node = () => {
+  return inicio();
 };
+
+function inicio() {
+  if (objInicial) {
+    return getBanner();
+  } else {
+    return getFormulario;
+  }
+}
+
+function salto(index) {
+  objInicial = false;
+  if (!objInicial) {
+    Alert.alert('true');
+  } else {
+    Alert.alert('false');
+  }
+}
 
 function getBanner() {
   return (
     <>
       <View style={styles.Container}>
         <StatusBar hidden={true} />
-        <Swiper autoplay={false}>
+        <Swiper
+          autoplay={true}
+          showsButtons={false}
+          showsPagination={false}
+          loop={false}>
           <View style={styles.slide}>
             <Image
               source={require('./assets/images/Screenshot_2.jpg')}
@@ -48,7 +72,7 @@ function getBanner() {
             />
             <TouchableOpacity
               style={styles.saltarText}
-              onPress={() => (objInicial = false)}>
+              onPress={() => salto('1')}>
               <Text style={styles.saltar}>{'Saltar'}</Text>
             </TouchableOpacity>
           </View>
@@ -59,7 +83,7 @@ function getBanner() {
             />
             <TouchableOpacity
               style={styles.saltarText}
-              onPress={() => (objInicial = false)}>
+              onPress={() => salto('2')}>
               <Text style={styles.saltar}>{'Saltar'}</Text>
             </TouchableOpacity>
           </View>

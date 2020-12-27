@@ -14,7 +14,8 @@
     "react": "16.13.1",
     "react-native": "0.63.4",
     "react-native-camera": "git+https://git@github.com/react-native-community/react-native-camera.git",
-    "react-native-swiper": "^1.6.0"
+    "react-native-swiper": "^1.6.0",
+    "swiper": "^6.4.5"
   },
   "devDependencies": {
     "@babel/core": "^7.12.10",
