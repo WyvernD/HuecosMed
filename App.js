@@ -1,124 +1,62 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
 import React from 'react';
 import {
-  View,
+  Alert,
+  Dimensions,
+  Image,
+  ImageBackground,
+  SafeAreaView,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
-  Button,
-  Image,
-  Dimensions,
+  TextInput,
   TouchableOpacity,
-  Alert,
+  View,
 } from 'react-native';
-import getFormulario from './assets/formulario';
 
-import Swiper from 'react-native-swiper';
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 
-import SwiperCore, {EffectFade} from 'swiper';
-SwiperCore.use([EffectFade]);
+import FormView from './assets/components/formulario';
+import SliderView from './assets/components/Swiper';
+import CamaraView from './assets/components/Camara';
+import GaleryView from './assets/components/Galery';
+import ReporteView from './assets/components/DatoReporte';
 
-const {width, height} = Dimensions.get('window');
+const Stack = createStackNavigator();
 
-let objInicial = true;
-
-let App: () => React$Node = () => {
-  return inicio();
-};
-
-function inicio() {
-  if (objInicial) {
-    return getBanner();
-  } else {
-    return getFormulario;
-  }
-}
-
-function salto(index) {
-  objInicial = false;
-  if (!objInicial) {
-    Alert.alert('true');
-  } else {
-    Alert.alert('false');
-  }
-}
-
-function getBanner() {
+const App: () => ReactNode = () => {
   return (
-    <>
-      <View style={styles.Container}>
-        <StatusBar hidden={true} />
-        <Swiper
-          autoplay={true}
-          showsButtons={false}
-          showsPagination={false}
-          loop={false}>
-          <View style={styles.slide}>
-            <Image
-              source={require('./assets/images/Screenshot_2.jpg')}
-              style={styles.image}
-            />
-          </View>
-          <View style={styles.slide}>
-            <Image
-              source={require('./assets/images/Screenshot_3.jpg')}
-              style={styles.image}
-            />
-            <TouchableOpacity
-              style={styles.saltarText}
-              onPress={() => salto('1')}>
-              <Text style={styles.saltar}>{'Saltar'}</Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.slide}>
-            <Image
-              source={require('./assets/images/Screenshot_4.jpg')}
-              style={styles.image}
-            />
-            <TouchableOpacity
-              style={styles.saltarText}
-              onPress={() => salto('2')}>
-              <Text style={styles.saltar}>{'Saltar'}</Text>
-            </TouchableOpacity>
-          </View>
-        </Swiper>
-      </View>
-    </>
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName={'Home'}>
+        <Stack.Screen
+          name="Home"
+          component={SliderView}
+          options={{title: '', headerTransparent: true}}
+        />
+        <Stack.Screen
+          name="Formulario"
+          component={FormView}
+          options={{title: '', headerTransparent: true}}
+        />
+        <Stack.Screen
+          name="Camera"
+          component={CamaraView}
+          options={{title: '', headerTransparent: true}}
+        />
+        <Stack.Screen
+          name="Galery"
+          component={GaleryView}
+          options={{title: '', headerTransparent: true}}
+        />
+        <Stack.Screen
+          name="Reporte"
+          component={ReporteView}
+          options={{title: '', headerTransparent: true}}
+        />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
-}
-
-const styles = StyleSheet.create({
-  Container: {
-    flex: 1,
-  },
-  saltarText: {
-    position: 'absolute',
-    bottom: 50,
-    alignItems: 'center',
-  },
-  saltar: {
-    color: '#fff',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    padding: 10,
-    fontSize: 20,
-    textDecorationLine: 'underline',
-  },
-  slide: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  image: {
-    width: width,
-    height: height,
-  },
-});
+};
 
 export default App;
