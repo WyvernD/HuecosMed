@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {Dimensions} from 'react-native';
 
 const txtUbicacion = 'Ubicación actual del daño en la via';
 const txtUbicDecripcion =
@@ -22,7 +23,21 @@ const txtPunto = 'Digite un punto de referencia de la dirección';
 const txtPuntoDEscripcion =
   'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
 
+const {width, height} = Dimensions.get('window');
+
 class getFormulario extends Component {
+  state = {
+    data: {},
+  };
+
+  onsubmit = () => {
+    const data = {...this.state.data};
+    console.log(data);
+  };
+
+  onchangeInputs = (text, name) => {
+    this.setState({data: {...this.state.data, [name]: text}});
+  };
   camaraPress = () => {
     this.props.navigation.navigate('Camera');
   };
@@ -31,11 +46,12 @@ class getFormulario extends Component {
   };
   validarReporte = () => {
     this.props.navigation.navigate('Reporte');
+    this.onsubmit;
   };
   getmapas = () => {
     Alert.alert('Capas');
   };
-  getUbicaion = () => {
+  getUbicacion = () => {
     Alert.alert('Ubicación');
   };
   render() {
@@ -52,16 +68,25 @@ class getFormulario extends Component {
             <View style={styles.contenedor}>
               <View style={styles.viewCampos}>
                 <Text style={styles.Text}>{txtUbicacion}</Text>
-                <TextInput style={styles.TextInput} />
+                <TextInput
+                  style={styles.TextInput}
+                  value={this.state.location}
+                  onChangeText={(event) =>
+                    this.onchangeInputs(event, 'location')
+                  }
+                />
                 <Text style={styles.ayuda}>{txtUbicDecripcion}</Text>
               </View>
               <View style={styles.viewCampos}>
                 <Text style={styles.Text}>{txtPunto}</Text>
                 <TextInput
                   style={styles.TextInput}
+                  value={this.state.data.description}
                   placeholder={'Ejemplo: Hueco cerca al consumo de la 80'}
+                  onChangeText={(event) =>
+                    this.onchangeInputs(event, 'description')
+                  }
                 />
-
                 <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
               </View>
             </View>
@@ -74,7 +99,7 @@ class getFormulario extends Component {
               </Pressable>
               <Pressable
                 style={[styles.btnCapas, {top: 60}]}
-                onPress={this.getUbicaion}>
+                onPress={this.getUbicacion}>
                 <Image
                   style={styles.iconoCapa}
                   source={require('../iconos/marcador-de-posicion.png')}
@@ -135,7 +160,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    right: 5,
+    right: 35,
     top: 10,
     borderRadius: 50,
     borderWidth: 1,
@@ -159,6 +184,7 @@ const styles = StyleSheet.create({
     color: Colors.black,
     fontSize: 12,
     position: 'relative',
+    fontWeight: 'bold',
     textAlign: 'left',
     left: 0,
     margin: 0,
@@ -210,7 +236,7 @@ const styles = StyleSheet.create({
     bottom: 20,
   },
   viewFooter: {
-    height: 500,
+    height: 525,
   },
   image: {
     flex: 1,
@@ -221,9 +247,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     position: 'absolute',
     bottom: 0,
-    width: 500,
-    height: 200,
-    backgroundColor: '#ffffffd6',
+    width: width,
+    height: 210,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     opacity: 0.8,
   },
@@ -253,6 +279,13 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     margin: 2,
     paddingLeft: 30,
+    zIndex: 1,
+    backgroundColor: '#ffffff',
+  },
+  btn: {
+    height: 40,
+    width: 100,
+    zIndex: 1,
   },
   icono: {
     top: 5,
@@ -273,7 +306,7 @@ const styles = StyleSheet.create({
     bottom: -20,
   },
   buttonOk: {
-    width: 304,
+    width: 310,
     height: 47,
   },
 });

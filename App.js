@@ -1,18 +1,4 @@
 import React from 'react';
-import {
-  Alert,
-  Dimensions,
-  Image,
-  ImageBackground,
-  SafeAreaView,
-  ScrollView,
-  StatusBar,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
 
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';

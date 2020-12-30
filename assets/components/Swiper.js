@@ -20,7 +20,7 @@ class SliderScreen extends Component {
 
   componentDidMount() {
     setTimeout(() => {
-      this.props.navigation.navigate('Formulario');
+     // this.props.navigation.navigate('Formulario');
     }, 6000);
   }
 

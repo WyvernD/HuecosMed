@@ -5,7 +5,7 @@ class GaleryScreen extends Component {
   render() {
     return (
       <View>
-        <Text>Holi</Text>
+        <Text></Text>
       </View>
     );
   }

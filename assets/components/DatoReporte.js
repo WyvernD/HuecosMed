@@ -14,6 +14,11 @@ import {
   View,
 } from 'react-native';
 
+import {Dimensions} from 'react-native';
+const {width, height} = Dimensions.get('window');
+
+var urlImagen = '';
+
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
 const txtUbicacion = 'Ubicación actual del daño en la via';
@@ -62,6 +67,31 @@ class DatosReporte extends Component {
                   />
                   <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
                 </View>
+                <View style={styles.viewCampos}>
+                  <View style={styles.campoImagen}>
+                    <Image
+                      style={styles.image}
+                      sorce={require('../images/7fb5163c7e31a4e2e5016040ac2eba32.jpg')}
+                    />
+                  </View>
+                  <View style={styles.campoImagen}>
+                    <Image
+                      style={styles.image}
+                      sorce={require('../images/41e92c070cd459853dced1e82e4cf03f.jpg')}
+                    />
+                  </View>
+                </View>
+                <View style={styles.viewCampos}>
+                  <Text style={styles.Text}>
+                    {'Ingresa el correo electrónico de quien reporta'}
+                  </Text>
+                  <TextInput style={styles.TextInput} />
+                  <Text style={styles.ayuda}>
+                    {
+                      'A este correo llegarán las notificaciones de avances en la solución del daño'
+                    }
+                  </Text>
+                </View>
               </View>
               <Pressable
                 style={styles.buttonReportar}
@@ -82,6 +112,11 @@ class DatosReporte extends Component {
 const styles = StyleSheet.create({
   Container: {
     flex: 1,
+  },
+  campoImagen: {
+    width: 50,
+    height: 50,
+    backgroundColor: 'red',
   },
   TextInput: {
     width: 'auto',
@@ -149,7 +184,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     position: 'absolute',
     bottom: 0,
-    width: 500,
+    width: width,
     height: 450,
     backgroundColor: '#ffffffd6',
     paddingLeft: 30,
