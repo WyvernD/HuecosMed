@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
   StyleSheet,
   Text,
@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 
-class MyCamera extends Component {
+class MyCamera extends React.Component {
   async componentDidMount() {
     this.requestCameraPermission();
   }
@@ -50,7 +50,6 @@ class MyCamera extends Component {
           }}
           style={styles.preview}
           type={RNCamera.Constants.Type.back}
-          flashMode={RNCamera.Constants.FlashMode.on}
           permissionDialogTitle={'Permiso de la cámara'}
           permissionDialogMessage={
             'La aplicación necesita acceso a tu cámara para que pueda tomar fotos impresionantes.'

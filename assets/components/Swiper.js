@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
   View,
   StatusBar,
@@ -11,16 +11,17 @@ import {
 } from 'react-native';
 import Swiper from 'react-native-swiper';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
+
 const {width, height} = Dimensions.get('window');
 
-class SliderScreen extends Component {
+class SliderScreen extends React.Component {
   handlePress = () => {
     this.props.navigation.navigate('Formulario');
   };
 
   componentDidMount() {
     setTimeout(() => {
-     // this.props.navigation.navigate('Formulario');
+      this.props.navigation.navigate('Formulario');
     }, 6000);
   }
 

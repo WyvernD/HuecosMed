@@ -1,4 +1,4 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
   Alert,
   Image,
@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 
+
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {Dimensions} from 'react-native';
 
@@ -25,7 +26,7 @@ const txtPuntoDEscripcion =
 
 const {width, height} = Dimensions.get('window');
 
-class getFormulario extends Component {
+class getFormulario extends React.Component {
   state = {
     data: {},
   };
@@ -34,6 +35,10 @@ class getFormulario extends Component {
     const data = {...this.state.data};
     console.log(data);
   };
+
+  componentDidMount() {
+    console.log(html_script);
+  }
 
   onchangeInputs = (text, name) => {
     this.setState({data: {...this.state.data, [name]: text}});
@@ -46,7 +51,6 @@ class getFormulario extends Component {
   };
   validarReporte = () => {
     this.props.navigation.navigate('Reporte');
-    this.onsubmit;
   };
   getmapas = () => {
     Alert.alert('Capas');
@@ -155,6 +159,11 @@ class getFormulario extends Component {
 const styles = StyleSheet.create({
   Container: {
     flex: 1,
+  },
+  Webview: {
+    flex: 2,
+    height: height,
+    width: width,
   },
   btnCapas: {
     position: 'absolute',

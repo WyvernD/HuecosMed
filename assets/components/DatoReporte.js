@@ -1,23 +1,19 @@
-import React, {Component} from 'react';
+import React from 'react';
 import {
   Alert,
   Image,
-  ImageBackground,
   SafeAreaView,
   ScrollView,
   StatusBar,
   StyleSheet,
   Text,
   TextInput,
-  TouchableOpacity,
   Pressable,
   View,
 } from 'react-native';
 
 import {Dimensions} from 'react-native';
 const {width, height} = Dimensions.get('window');
-
-var urlImagen = '';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
@@ -28,7 +24,7 @@ const txtPunto = 'Digite un punto de referencia de la dirección';
 const txtPuntoDEscripcion =
   'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
 
-class DatosReporte extends Component {
+class DatosReporte extends React.Component {
   camaraPress = () => {
     this.props.navigation.navigate('Camera');
   };
@@ -70,14 +66,16 @@ class DatosReporte extends Component {
                 <View style={styles.viewCampos}>
                   <View style={styles.campoImagen}>
                     <Image
-                      style={styles.image}
+                      style={styles.captures}
                       sorce={require('../images/7fb5163c7e31a4e2e5016040ac2eba32.jpg')}
                     />
-                  </View>
-                  <View style={styles.campoImagen}>
                     <Image
-                      style={styles.image}
+                      style={styles.captures}
                       sorce={require('../images/41e92c070cd459853dced1e82e4cf03f.jpg')}
+                    />
+                    <Image
+                      style={styles.captures}
+                      sorce={require('../images/e14ddf06e9b3d0889fcea6426476309f.jpg')}
                     />
                   </View>
                 </View>
@@ -114,9 +112,14 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   campoImagen: {
-    width: 50,
-    height: 50,
-    backgroundColor: 'red',
+    width: 90,
+    height: 90,
+    flexDirection: 'row',
+  },
+  captures: {
+    marginLeft: 10,
+    height: 80,
+    width: 90,
   },
   TextInput: {
     width: 'auto',
@@ -185,7 +188,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: width,
-    height: 450,
+    height: 500,
     backgroundColor: '#ffffffd6',
     paddingLeft: 30,
     paddingRight: 30,
