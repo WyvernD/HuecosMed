@@ -40,7 +40,7 @@ class getFormulario extends React.Component {
           const currentLongitude = JSON.stringify(position.coords.longitude);
           const currentLatitude = JSON.stringify(position.coords.latitude);
           alert(currentLatitude);
-          this.refs['Map_Ref'].injectJavaScript(`
+          this.refs.Map_Ref.injectJavaScript(`
         mymap.setView([${currentLatitude}, ${currentLongitude}], 15)`);
         },
         (error) => {
@@ -55,22 +55,6 @@ class getFormulario extends React.Component {
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           //To Check, If Permission is granted
-          Geolocation.getCurrentPosition(
-            //Will give you the current location
-            (position) => {
-              const currentLongitude = JSON.stringify(
-                position.coords.longitude,
-              );
-              const currentLatitude = JSON.stringify(position.coords.latitude);
-              this.refs['Map_Ref'].injectJavaScript(`
-        mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)
-        `);
-            },
-            (error) => {
-              alert(error.message);
-            },
-            {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
-          );
         }
       } catch (err) {
         console.warn(err);
@@ -100,10 +84,23 @@ class getFormulario extends React.Component {
     this.props.navigation.navigate('Reporte');
   };
   getmapas = () => {
-    Alert.alert('Capas');
+
   };
   getUbicacion = () => {
-    Alert.alert('Ubicación');
+    Geolocation.getCurrentPosition(
+      //Will give you the current location
+      (position) => {
+        const currentLongitude = JSON.stringify(position.coords.longitude);
+        const currentLatitude = JSON.stringify(position.coords.latitude);
+        this.refs.Map_Ref.injectJavaScript(`
+        mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)
+        `);
+      },
+      (error) => {
+        alert(error.message);
+      },
+      {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
+    );
   };
   render() {
     return (
@@ -145,8 +142,22 @@ class getFormulario extends React.Component {
               <WebView
                 ref={'Map_Ref'}
                 source={{html: mapComponent}}
-                style={styles.Webview}
+                style={styles.WebviewMapa}
               />
+              <Pressable style={styles.btnCapas} onPress={this.getmapas}>
+                <Image
+                  style={styles.iconoCapa}
+                  source={require('../iconos/capas.png')}
+                />
+              </Pressable>
+              <Pressable
+                style={[styles.btnCapas, {top: 60}]}
+                onPress={this.getUbicacion}>
+                <Image
+                  style={styles.iconoCapa}
+                  source={require('../iconos/marcador-de-posicion.png')}
+                />
+              </Pressable>
             </View>
             <View style={styles.viewFooter}>
               <View style={styles.footer}>
@@ -198,13 +209,13 @@ const styles = StyleSheet.create({
   Container: {
     flex: 1,
   },
-  Webview: {
-    flex: 2,
-    height: height,
-    width: width,
-  },
   WebviewMapa: {
-    flex: 2,
+    flex: 1,
+    height: (height / 2),
+    width: width,
+    margin: 0,
+    padding: 0,
+    backgroundColor: 'gray',
   },
   btnCapas: {
     position: 'absolute',
@@ -286,7 +297,7 @@ const styles = StyleSheet.create({
     bottom: 20,
   },
   viewFooter: {
-    height: 525,
+    height: 100,
   },
   image: {
     flex: 1,
@@ -298,7 +309,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: width,
-    height: 210,
+    height: 200,
     backgroundColor: '#ffffff',
     alignItems: 'center',
     opacity: 0.8,
@@ -315,15 +326,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     textAlign: 'center',
     position: 'absolute',
-    bottom: 50,
+    bottom: 45,
     padding: 0,
-    height: 100,
+    height: 120,
     width: 'auto',
   },
   viewicono: {
     width: 150,
     textAlign: 'center',
-    height: 40,
+    height: 50,
     borderRadius: 50,
     borderColor: '#03AED8',
     borderWidth: 2,
@@ -338,9 +349,9 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   icono: {
-    top: 5,
-    width: 30,
-    height: 23,
+    top: 10,
+    width: 35,
+    height: 28,
     left: 30,
     position: 'relative',
     alignItems: 'center',

@@ -10,9 +10,9 @@ const html_script = `
     <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
  </head>
 <body style="padding: 0; margin: 0">
-<div id="mapid" style="width: 100%; height: 50vh;"></div>
+<div id="mapid" style="width: 100%; height: 100vh;"></div>
 <script>
-	var mymap = L.map('mapid').setView([7.890258, -72.504877], 15);
+	var mymap = L.map('mapid').setView([6.2447305,-75.5760133], 15);
   
 	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
 		maxZoom: 18,

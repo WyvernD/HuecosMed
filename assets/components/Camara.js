@@ -5,6 +5,7 @@ import {
   View,
   PermissionsAndroid,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import {RNCamera} from 'react-native-camera';
 
@@ -28,15 +29,15 @@ class MyCamera extends React.Component {
         console.log('Camera permission denied');
       }
     } catch (err) {
-      console.warn('Error: ', err);
+      console.log('Error: ', err);
     }
   }
   takePicture = async function () {
     if (this.camera) {
-      const options = {quality: 0.5, base64: true};
+      const options = {quality: 1080, base64: true};
       const data = await this.camera.takePictureAsync(options);
       console.log(data.uri);
-      //console.log(data.base64);
+      console.log(this.props);
       this.props.navigation.navigate('Formulario');
     }
   };
@@ -50,10 +51,6 @@ class MyCamera extends React.Component {
           }}
           style={styles.preview}
           type={RNCamera.Constants.Type.back}
-          permissionDialogTitle={'Permiso de la cámara'}
-          permissionDialogMessage={
-            'La aplicación necesita acceso a tu cámara para que pueda tomar fotos impresionantes.'
-          }
           onGoogleVisionBarcodesDetected={({barcodes}) => {
             console.log(barcodes);
           }}
@@ -62,7 +59,10 @@ class MyCamera extends React.Component {
           <TouchableOpacity
             onPress={this.takePicture.bind(this)}
             style={styles.capture}>
-            <Text style={{fontSize: 14}}>Capture</Text>
+            <Image
+              source={require('../iconos/camera.png')}
+              style={styles.iconFondo}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -83,6 +83,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     alignItems: 'center',
   },
+  iconFondo: {
+    height: 50,
+    position: 'absolute',
+    width: 50,
+  },
   capture: {
     flex: 0,
     backgroundColor: '#fff',
@@ -90,6 +95,9 @@ const styles = StyleSheet.create({
     padding: 15,
     paddingHorizontal: 20,
     alignSelf: 'center',
+    alignItems: 'center',
     margin: 20,
+    width: 100,
+    height: 50,
   },
 });
