@@ -13,6 +13,11 @@ const html_script = `
 <div id="mapid" style="width: 100%; height: 100vh;"></div>
 <script>
 	var mymap = L.map('mapid').setView([6.2447305,-75.5760133], 15);
+	
+	var myIcon = L.icon({
+    iconUrl: 'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=ab165cf6-2203-4fac-ab5b-3d5da5f0ca84&api_key=CometServer1&access_token=1609389997_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_1cebcbc8319e7b4a3e413b1cf401c66bc575bc57',
+    iconAnchor:   [22, 43], // point of the icon which will correspond to marker's location
+});
   
 	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
 		maxZoom: 18,
@@ -23,7 +28,12 @@ const html_script = `
 		zoomOffset: -1
 	}).addTo(mymap);
 	
-	var marker = L.marker(mymap.getCenter()).addTo(mymap);
+	var marker = L.marker(mymap.getCenter(), {icon: myIcon}).addTo(mymap);
+	var radius = L.circle(mymap.getCenter(), {
+          color: "#58D2FF",
+          fillColor: "#58D2FF",
+          radius: 10.0
+      }).addTo(mymap);
 
 	var popup = L.popup();
 
@@ -39,6 +49,7 @@ const html_script = `
 	
 	mymap.on('move', function () {
 	  marker.setLatLng(mymap.getCenter());
+	  radius.setLatLng(mymap.getCenter());
 	});
 	
 	function onLocationFound(e) {

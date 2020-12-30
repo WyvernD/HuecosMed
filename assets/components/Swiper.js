@@ -32,9 +32,9 @@ class SliderScreen extends React.Component {
         <Swiper
           autoplay={true}
           showsButtons={false}
-          showsPagination={true}
+          showsPagination={false}
           activeDot={false}
-          preloadImages={false}
+          preloadImages={true}
           loop={false}>
           <View style={styles.slide}>
             <Image

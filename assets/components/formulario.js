@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     left: 0,
     margin: 0,
-    paddingLeft: 18,
+    paddingLeft: 5,
     padding: 0,
   },
   ayuda: {
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   viewicono: {
     width: 150,
     textAlign: 'center',
-    height: 50,
+    height: 40,
     borderRadius: 50,
     borderColor: '#03AED8',
     borderWidth: 2,
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   icono: {
-    top: 10,
+    top: 5,
     width: 35,
     height: 28,
     left: 30,
