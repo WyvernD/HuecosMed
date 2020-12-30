@@ -1,8 +1,6 @@
 import React from 'react';
-
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
-
 import FormView from './assets/components/formulario';
 import SliderView from './assets/components/Swiper';
 import CamaraView from './assets/components/Camara';

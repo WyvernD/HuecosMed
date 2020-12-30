@@ -2,6 +2,8 @@ import React from 'react';
 import {
   Alert,
   Image,
+  PermissionsAndroid,
+  Platform,
   ImageBackground,
   SafeAreaView,
   ScrollView,
@@ -13,6 +15,9 @@ import {
   View,
 } from 'react-native';
 
+import {WebView} from 'react-native-webview';
+import mapComponent from './MapComponent';
+import Geolocation from '@react-native-community/geolocation';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {Dimensions} from 'react-native';
@@ -27,6 +32,52 @@ const txtPuntoDEscripcion =
 const {width, height} = Dimensions.get('window');
 
 class getFormulario extends React.Component {
+  async componentDidMount() {
+    if (Platform.OS === 'ios') {
+      Geolocation.getCurrentPosition(
+        //Will give you the current location
+        (position) => {
+          const currentLongitude = JSON.stringify(position.coords.longitude);
+          const currentLatitude = JSON.stringify(position.coords.latitude);
+          alert(currentLatitude);
+          this.refs['Map_Ref'].injectJavaScript(`
+        mymap.setView([${currentLatitude}, ${currentLongitude}], 15)`);
+        },
+        (error) => {
+          alert(error.message);
+        },
+        {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
+      );
+    } else {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+          //To Check, If Permission is granted
+          Geolocation.getCurrentPosition(
+            //Will give you the current location
+            (position) => {
+              const currentLongitude = JSON.stringify(
+                position.coords.longitude,
+              );
+              const currentLatitude = JSON.stringify(position.coords.latitude);
+              this.refs['Map_Ref'].injectJavaScript(`
+        mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)
+        `);
+            },
+            (error) => {
+              alert(error.message);
+            },
+            {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
+          );
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+  }
+
   state = {
     data: {},
   };
@@ -35,10 +86,6 @@ class getFormulario extends React.Component {
     const data = {...this.state.data};
     console.log(data);
   };
-
-  componentDidMount() {
-    console.log(html_script);
-  }
 
   onchangeInputs = (text, name) => {
     this.setState({data: {...this.state.data, [name]: text}});
@@ -95,20 +142,11 @@ class getFormulario extends React.Component {
               </View>
             </View>
             <View>
-              <Pressable style={styles.btnCapas} onPress={this.getmapas}>
-                <Image
-                  style={styles.iconoCapa}
-                  source={require('../iconos/capas.png')}
-                />
-              </Pressable>
-              <Pressable
-                style={[styles.btnCapas, {top: 60}]}
-                onPress={this.getUbicacion}>
-                <Image
-                  style={styles.iconoCapa}
-                  source={require('../iconos/marcador-de-posicion.png')}
-                />
-              </Pressable>
+              <WebView
+                ref={'Map_Ref'}
+                source={{html: mapComponent}}
+                style={styles.Webview}
+              />
             </View>
             <View style={styles.viewFooter}>
               <View style={styles.footer}>
@@ -143,7 +181,7 @@ class getFormulario extends React.Component {
                     onPress={this.validarReporte}>
                     <Image
                       style={styles.buttonOk}
-                      source={require('../iconos/reportar.png')}
+                      source={require('../iconos/REPORTAR.png')}
                     />
                   </Pressable>
                 </View>
@@ -164,6 +202,9 @@ const styles = StyleSheet.create({
     flex: 2,
     height: height,
     width: width,
+  },
+  WebviewMapa: {
+    flex: 2,
   },
   btnCapas: {
     position: 'absolute',
