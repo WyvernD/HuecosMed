@@ -4,7 +4,6 @@ import {
   Image,
   PermissionsAndroid,
   Platform,
-  ImageBackground,
   SafeAreaView,
   ScrollView,
   StatusBar,
@@ -15,12 +14,14 @@ import {
   View,
 } from 'react-native';
 
-import {WebView} from 'react-native-webview';
-import mapComponent from './MapComponent';
-import Geolocation from '@react-native-community/geolocation';
-
 import {Colors} from 'react-native/Libraries/NewAppScreen';
+import {WebView} from 'react-native-webview';
+import Geolocation from '@react-native-community/geolocation';
 import {Dimensions} from 'react-native';
+
+const encode64 = require('../libs/B64');
+
+const {width, height} = Dimensions.get('window');
 
 const txtUbicacion = 'Ubicación actual del daño en la via';
 const txtUbicDecripcion =
@@ -28,10 +29,22 @@ const txtUbicDecripcion =
 const txtPunto = 'Digite un punto de referencia de la dirección';
 const txtPuntoDEscripcion =
   'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
+const urlRoot = 'https://www.medellin.gov.co';
 
-const {width, height} = Dimensions.get('window');
+const imagen =
+  'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=9842447a-6cf1-41fc-9e4f-e8db4db53887&api_key=CometServer1&access_token=1609996332_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_37cce0b2660c3cb0c079e2150784ea10cd99b163';
+
+const layer =
+  'https://tiles.arcgis.com/tiles/FZVaYraI7sEGQ6rF/arcgis/rest/services/CartografiaBase/VectorTileServer?f=jsapi&cacheKey=81053369bb5849b1';
+
+const layer1 =
+  'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
 
 class getFormulario extends React.Component {
+  state = {
+    data: {},
+    consulta: [],
+  };
   async componentDidMount() {
     if (Platform.OS === 'ios') {
       Geolocation.getCurrentPosition(
@@ -41,7 +54,7 @@ class getFormulario extends React.Component {
           const currentLatitude = JSON.stringify(position.coords.latitude);
           alert(currentLatitude);
           this.refs.Map_Ref.injectJavaScript(`
-        mymap.setView([${currentLatitude}, ${currentLongitude}], 15)`);
+        mymap.setView([${currentLatitude}, ${currentLongitude}], 18)`);
         },
         (error) => {
           alert(error.message);
@@ -57,14 +70,41 @@ class getFormulario extends React.Component {
           //To Check, If Permission is granted
         }
       } catch (err) {
-        console.warn(err);
+        console.log(err);
       }
     }
-  }
 
-  state = {
-    data: {},
-  };
+    const consulta = {
+      SQL: 'SQL_HUECOS_CONSULTAR_PARAMETROS_HUECO',
+      N: 0,
+      DATOS: {},
+    };
+    let url =
+      urlRoot +
+      '/HuecosMed/cargardatos.hyg?str_sql=' +
+      encodeURIComponent(encode64(JSON.stringify(consulta)));
+    fetch(url, {
+      method: 'GET',
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        this.setState({
+          consulta: responseJson[0],
+        });
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }
+  async componentDidUpdate() {
+    if (this.props.route.params != undefined) {
+      const datosRes = JSON.parse(this.props.route.params.dato);
+      console.log(datosRes.urlFoto);
+      this.state.data.urlFoto = datosRes.urlFoto;
+      this.onchangeInputs(datosRes.urlFoto, 'urlFoto');
+      this.props.route.params = undefined;
+    }
+  }
 
   onsubmit = () => {
     const data = {...this.state.data};
@@ -73,19 +113,32 @@ class getFormulario extends React.Component {
 
   onchangeInputs = (text, name) => {
     this.setState({data: {...this.state.data, [name]: text}});
+    this.onsubmit();
   };
   camaraPress = () => {
-    this.props.navigation.navigate('Camera');
+    this.props.navigation.navigate('Camera', {
+      datos: JSON.stringify({...this.state.data}),
+    });
   };
   galeryPress = () => {
     this.props.navigation.navigate('Galery');
   };
   validarReporte = () => {
-    this.props.navigation.navigate('Reporte');
+    const datos = {...this.state.data};
+    if (datos.location != undefined) {
+      this.props.navigation.navigate('Reporte', {
+        datos: JSON.stringify(this.state),
+      });
+    } else {
+      Alert.alert(
+        'Campo obligatorio',
+        'El campo ubicación es obligatorio.',
+        [{text: 'Aceptar', onPress: () => console.log('Aceptar Pressed')}],
+        {cancelable: false},
+      );
+    }
   };
-  getmapas = () => {
-
-  };
+  getCapas = () => {};
   getUbicacion = () => {
     Geolocation.getCurrentPosition(
       //Will give you the current location
@@ -93,8 +146,16 @@ class getFormulario extends React.Component {
         const currentLongitude = JSON.stringify(position.coords.longitude);
         const currentLatitude = JSON.stringify(position.coords.latitude);
         this.refs.Map_Ref.injectJavaScript(`
-        mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)
-        `);
+        mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`);
+        this.setState({
+          data: {...this.state.data, ['latitude']: currentLatitude},
+        });
+        this.setState({
+          data: {...this.state.data, ['longitude']: currentLongitude},
+        });
+        this.setState({
+          data: {...this.state.data, ['zoom']: 18},
+        });
       },
       (error) => {
         alert(error.message);
@@ -118,7 +179,7 @@ class getFormulario extends React.Component {
                 <Text style={styles.Text}>{txtUbicacion}</Text>
                 <TextInput
                   style={styles.TextInput}
-                  value={this.state.location}
+                  value={this.state.data.location}
                   onChangeText={(event) =>
                     this.onchangeInputs(event, 'location')
                   }
@@ -141,10 +202,81 @@ class getFormulario extends React.Component {
             <View>
               <WebView
                 ref={'Map_Ref'}
-                source={{html: mapComponent}}
+                source={{
+                  html:
+                    `
+                  <!DOCTYPE html>
+                  <html>
+                  <head>
+                      <title>Quick Start - Leaflet</title>
+                      <meta charset="utf-8">
+                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                      <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico">
+                      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="">
+                      <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
+                   </head>
+                  <body style="padding: 0; margin: 0">
+                  <div id="mapid" style="width: 100%; height: 100vh;"></div>
+                  <script>
+                      var mymap = L.map('mapid').setView([` +
+                    this.state.consulta.latitude +
+                    ',' +
+                    this.state.consulta.longitude +
+                    '], ' +
+                    this.state.consulta.zoom +
+                    `);
+                      
+                      var myIcon = L.icon({
+                      iconUrl: '` +
+                    imagen +
+                    `',
+                          iconAnchor:   [22, 43], // point of the icon which will correspond to marker's location
+                        });
+                    
+                      L.tileLayer('` +
+                    layer1 +
+                    `', {
+                          maxZoom: 18,
+                          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+                              'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+                          id: 'mapbox/streets-v11',
+                          tileSize: 512,
+                          zoomOffset: -1
+                      }).addTo(mymap);
+                      
+                      var marker = L.marker(mymap.getCenter(), {icon: myIcon}).addTo(mymap);
+                      var radius = L.circle(mymap.getCenter(), {
+                            color: "#58D2FF",
+                            fillColor: "#58D2FF",
+                            radius: 10.0
+                        }).addTo(mymap);
+                  
+                      var popup = L.popup();               
+                      
+                      mymap.on('move', function () {
+                        marker.setLatLng(mymap.getCenter());
+                        radius.setLatLng(mymap.getCenter());
+                      });
+                      
+                      function onLocationFound(e) {
+                      marker.setLatLng(mymap.getCenter());      
+                    }
+                      
+                    function onLocationError(e) {
+                      alert(e.message);
+                    }
+                  
+                    mymap.on('locationfound', onLocationFound);
+                    mymap.on('locationerror', onLocationError);
+                  
+                  </script>
+                  </body>
+                  </html>
+                  `,
+                }}
                 style={styles.WebviewMapa}
               />
-              <Pressable style={styles.btnCapas} onPress={this.getmapas}>
+              <Pressable style={styles.btnCapas} onPress={this.getCapas}>
                 <Image
                   style={styles.iconoCapa}
                   source={require('../iconos/capas.png')}
@@ -211,7 +343,7 @@ const styles = StyleSheet.create({
   },
   WebviewMapa: {
     flex: 1,
-    height: (height / 2),
+    height: height / 2,
     width: width,
     margin: 0,
     padding: 0,

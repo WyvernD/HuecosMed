@@ -10,6 +10,10 @@ import {
 import {RNCamera} from 'react-native-camera';
 
 class MyCamera extends React.Component {
+  state = {
+    data: {},
+  };
+
   async componentDidMount() {
     this.requestCameraPermission();
   }
@@ -32,13 +36,21 @@ class MyCamera extends React.Component {
       console.log('Error: ', err);
     }
   }
+
+  onchangeDatos = (text, name) => {
+    this.setState({data: {...this.state.data, [name]: text}});
+
+    console.log(this.state.data);
+    this.props.navigation.navigate('Formulario', {
+      dato: JSON.stringify(this.state.data),
+    });
+  };
+
   takePicture = async function () {
     if (this.camera) {
       const options = {quality: 1080, base64: true};
-      const data = await this.camera.takePictureAsync(options);
-      console.log(data.uri);
-      console.log(this.props);
-      this.props.navigation.navigate('Formulario');
+      const objCamara = await this.camera.takePictureAsync(options);
+      this.onchangeDatos(objCamara.uri, 'urlFoto');
     }
   };
 
@@ -51,8 +63,11 @@ class MyCamera extends React.Component {
           }}
           style={styles.preview}
           type={RNCamera.Constants.Type.back}
+          flashMode={RNCamera.Constants.FlashMode.off}
+          autoFocus={RNCamera.Constants.AutoFocus.on}
+          zoom={10}
           onGoogleVisionBarcodesDetected={({barcodes}) => {
-            console.log(barcodes);
+            console.log('RNCamera', barcodes);
           }}
         />
         <View style={{flex: 0, flexDirection: 'row', justifyContent: 'center'}}>

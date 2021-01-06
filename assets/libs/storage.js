@@ -1,9 +1,9 @@
+import React from 'react';
 import AsyncStorage from '@react-native-community/async-storage';
 
-class Storage {
+export default class Storage {
   static instance = Storage();
-
-  store = async (key, value) => {
+  add = async (key, value) => {
     try {
       await AsyncStorage.setItem(key, value);
       return true;
@@ -26,7 +26,7 @@ class Storage {
     try {
       return await AsyncStorage.getAllKeys();
     } catch (e) {
-      console.log('storage multiGet err', e);
+      console.log('storage getAllKeys err', e);
       throw Error(e);
     }
   };
@@ -40,3 +40,4 @@ class Storage {
     }
   };
 }
+

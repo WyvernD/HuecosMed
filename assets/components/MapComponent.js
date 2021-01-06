@@ -1,4 +1,9 @@
-const html_script = `
+import React from 'react';
+
+var datosReporte = {latitude: 6.2447305, longitude: -75.5760133, zoom: 15};
+
+const html_script =
+  `
 <!DOCTYPE html>
 <html>
 <head>
@@ -12,10 +17,18 @@ const html_script = `
 <body style="padding: 0; margin: 0">
 <div id="mapid" style="width: 100%; height: 100vh;"></div>
 <script>
-	var mymap = L.map('mapid').setView([6.2447305,-75.5760133], 15);
+	var mymap = L.map('mapid').setView([` +
+  datosReporte.latitude +
+  ',' +
+  datosReporte.longitude +
+  '], ' +
+  datosReporte.zoom +
+  `);
 	
 	var myIcon = L.icon({
-    iconUrl: 'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=ab165cf6-2203-4fac-ab5b-3d5da5f0ca84&api_key=CometServer1&access_token=1609389997_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_1cebcbc8319e7b4a3e413b1cf401c66bc575bc57',
+    iconUrl: ` +
+      require('../iconos/pin.png') +
+  ` ,
     iconAnchor:   [22, 43], // point of the icon which will correspond to marker's location
 });
   
@@ -68,4 +81,5 @@ const html_script = `
 </body>
 </html>
 `;
+
 export default html_script;
