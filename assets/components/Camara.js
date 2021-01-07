@@ -64,7 +64,7 @@ class MyCamera extends React.Component {
           }}
           style={styles.preview}
           type={RNCamera.Constants.Type.back}
-          flashMode={RNCamera.Constants.FlashMode.auto}
+          flashMode={RNCamera.Constants.FlashMode.off}
           zoom={0}
           onGoogleVisionBarcodesDetected={({barcodes}) => {
             console.log('RNCamera', barcodes);

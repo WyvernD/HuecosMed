@@ -26,7 +26,7 @@ const imagen =
   'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=0b21bca6-7f26-439a-860a-07324bba5b7c&api_key=CometServer1&access_token=1610066091_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_f572e020bc5cd4b196dea4356a063b5ffb861a88';
 
 const encode64 = require('../libs/B64');
-const urlRoot = 'https://www.medellin.gov.co';
+const urlRoot = 'http://192.168.1.10:8888'; //'https://www.medellin.gov.co';
 
 const validate = (email) => {
   const expression = /(?!.*\.{2})^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([\t]*\r\n)?[\t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([\t]*\r\n)?[\t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
@@ -37,11 +37,12 @@ const validate = (email) => {
 class DatosReporte extends React.Component {
   state = {
     data: {},
+    consulta: [],
   };
 
   async componentDidMount() {
     this.state.data = JSON.parse(this.props.route.params.datos).data;
-
+    this.state.consulta = JSON.parse(this.props.route.params.datos).consulta;
     this.onchangeInputs();
   }
 
@@ -51,6 +52,9 @@ class DatosReporte extends React.Component {
   };
 
   validarReporte = () => {
+    this.guardarFoto();
+    return;
+
     if (
       this.state.data.email != undefined &&
       this.state.data.email != '' &&
@@ -143,23 +147,30 @@ class DatosReporte extends React.Component {
   };
 
   guardarFoto = () => {
-
+    console.log('paso');
+    let url = urlRoot + '/HuecosMed/guardarFoto.hyg';
     let data = {
-      method: 'POST',
-      credentials: 'same-origin',
-      mode: 'same-origin',
-      body: JSON.stringify({}),
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-      },
+      ruta: this.state.consulta.URLLOCALPHOTO,
+      nombre: this.state.data.urlFoto.split('/').pop(),
+      archivo: this.state.data.base64,
     };
-    let url = urlRoot + '/HuecosMed/subirFotoHueco.hyg';
-    return fetch(url, data)
-      .then((response) => response.json()) // promise
-      .then((json) => this.receiveAppos(json));
+    let fetchData = {
+      method: 'POST',
+      body: data,
+      headers: new Headers(),
+    };
+    console.log(fetchData);
+    fetch(url, fetchData)
+      .then(function (res) {
+        console.log(res);
+      })
+      .then(function (res) {
+        console.log(res);
+      })
+      .catch((error) => {
+        console.error('catch', error);
+      });
   };
-  receiveAppos = (json) => {};
 
   onsubmit = () => {
     const data = {...this.state.data};

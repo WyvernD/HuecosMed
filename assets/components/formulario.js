@@ -154,8 +154,7 @@ class getFormulario extends React.Component {
   };
   ubicarDireccion = () => {
     let url =
-      'https://www.medellin.gov.co/servicios/vamosmed/validarDireccion.hyg?dir=' +
-      encode64(this.state.data.location);
+      this.state.consulta.buscarDir + encode64(this.state.data.location);
     fetch(url, {
       method: 'GET',
     })
