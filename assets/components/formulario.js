@@ -32,13 +32,16 @@ const txtPuntoDEscripcion =
 const urlRoot = 'https://www.medellin.gov.co';
 
 const imagen =
-  'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=9842447a-6cf1-41fc-9e4f-e8db4db53887&api_key=CometServer1&access_token=1609996332_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_37cce0b2660c3cb0c079e2150784ea10cd99b163';
+  'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=0b21bca6-7f26-439a-860a-07324bba5b7c&api_key=CometServer1&access_token=1610066091_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_f572e020bc5cd4b196dea4356a063b5ffb861a88';
 
 const layer =
   'https://tiles.arcgis.com/tiles/FZVaYraI7sEGQ6rF/arcgis/rest/services/CartografiaBase/VectorTileServer?f=jsapi&cacheKey=81053369bb5849b1';
 
 const layer1 =
   'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
+
+var urlLocalPhoto =
+  'E:/WebApplication/secretaria_oopp/HuecosMed/HuecosMed_photos/';
 
 class getFormulario extends React.Component {
   state = {
@@ -99,16 +102,18 @@ class getFormulario extends React.Component {
   async componentDidUpdate() {
     if (this.props.route.params != undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
-      console.log(datosRes.urlFoto);
+      // console.log(datosRes.urlFoto);
       this.state.data.urlFoto = datosRes.urlFoto;
+      this.state.data.base64 = datosRes.base64;
       this.onchangeInputs(datosRes.urlFoto, 'urlFoto');
+      this.onchangeInputs(datosRes.base64, 'base64');
       this.props.route.params = undefined;
     }
   }
 
   onsubmit = () => {
     const data = {...this.state.data};
-    console.log(data);
+    //console.log(data);
   };
 
   onchangeInputs = (text, name) => {
@@ -120,12 +125,16 @@ class getFormulario extends React.Component {
       datos: JSON.stringify({...this.state.data}),
     });
   };
+
   galeryPress = () => {
-    this.props.navigation.navigate('Galery');
+    //this.props.navigation.navigate('Galery');
   };
   validarReporte = () => {
     const datos = {...this.state.data};
+    const datosMapa = this.refs.Map_Ref.injectJavaScript('mymap.getCenter()');
+    console.log(datosMapa);
     if (datos.location != undefined) {
+      //this.llenarUbicacion(currentLatitude, currentLongitude);
       this.props.navigation.navigate('Reporte', {
         datos: JSON.stringify(this.state),
       });
@@ -138,24 +147,73 @@ class getFormulario extends React.Component {
       );
     }
   };
-  getCapas = () => {};
+  limpiar = () => {
+    this.setState({
+      data: {...this.state.data, ['location']: ''},
+    });
+  };
+  ubicarDireccion = () => {
+    let url =
+      'https://www.medellin.gov.co/servicios/vamosmed/validarDireccion.hyg?dir=' +
+      encode64(this.state.data.location);
+    fetch(url, {
+      method: 'GET',
+    })
+      .then((response) => response.json())
+      .then((responseJson) => {
+        console.log(responseJson);
+        if (responseJson.Y == undefined || responseJson.X == undefined) {
+          Alert.alert(
+            'No se encontro la ubicación',
+            'Por favor verifique la dirección.',
+            [{text: 'Aceptar', onPress: () => console.log('Aceptar Pressed')}],
+            {cancelable: false},
+          );
+        } else {
+          const currentLatitude = responseJson.Y[0];
+          const currentLongitude = responseJson.X[0];
+          if (currentLatitude != 0 && currentLongitude != 0) {
+            this.refs.Map_Ref.injectJavaScript(
+              ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
+            );
+            this.llenarUbicacion(currentLatitude, currentLongitude);
+          } else {
+            Alert.alert(
+              'No se encontro La ubicación',
+              'Por favor verifique la dirección.',
+              [
+                {
+                  text: 'Aceptar',
+                  onPress: () => console.log('Aceptar Pressed'),
+                },
+              ],
+              {cancelable: false},
+            );
+          }
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  };
+
+  getCapas = () => {
+
+  };
+  onMessage = (datos) => {
+    console.log(datos);
+  };
+
   getUbicacion = () => {
     Geolocation.getCurrentPosition(
       //Will give you the current location
       (position) => {
         const currentLongitude = JSON.stringify(position.coords.longitude);
         const currentLatitude = JSON.stringify(position.coords.latitude);
-        this.refs.Map_Ref.injectJavaScript(`
-        mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`);
-        this.setState({
-          data: {...this.state.data, ['latitude']: currentLatitude},
-        });
-        this.setState({
-          data: {...this.state.data, ['longitude']: currentLongitude},
-        });
-        this.setState({
-          data: {...this.state.data, ['zoom']: 18},
-        });
+        this.refs.Map_Ref.injectJavaScript(
+          ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
+        );
+        this.llenarUbicacion(currentLatitude, currentLongitude);
       },
       (error) => {
         alert(error.message);
@@ -163,6 +221,19 @@ class getFormulario extends React.Component {
       {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
     );
   };
+
+  llenarUbicacion = (currentLatitude, currentLongitude) => {
+    this.setState({
+      data: {...this.state.data, ['latitude']: currentLatitude},
+    });
+    this.setState({
+      data: {...this.state.data, ['longitude']: currentLongitude},
+    });
+    this.setState({
+      data: {...this.state.data, ['zoom']: 17},
+    });
+  };
+
   render() {
     return (
       <View style={styles.Container}>
@@ -177,13 +248,43 @@ class getFormulario extends React.Component {
             <View style={styles.contenedor}>
               <View style={styles.viewCampos}>
                 <Text style={styles.Text}>{txtUbicacion}</Text>
+                <Pressable
+                  style={
+                    this.state.data.location == undefined ||
+                    this.state.data.location == ''
+                      ? styles.btnOculto
+                      : styles.btnUbic
+                  }
+                  onPress={this.ubicarDireccion}>
+                  <Image
+                    style={styles.iconoText}
+                    source={require('../iconos/ubicacion.png')}
+                  />
+                </Pressable>
                 <TextInput
-                  style={styles.TextInput}
+                  style={[styles.TextInput, styles.TextUbic]}
                   value={this.state.data.location}
                   onChangeText={(event) =>
                     this.onchangeInputs(event, 'location')
                   }
                 />
+                <Pressable
+                  style={
+                    this.state.data.location == undefined ||
+                    this.state.data.location == ''
+                      ? styles.btnOculto
+                      : styles.btnLimpiar
+                  }
+                  onPress={this.limpiar}>
+                  <Image
+                    style={styles.iconoText}
+                    source={require('../iconos/ElipseX.png')}
+                  />
+                  <Image
+                    style={[styles.iconoText, styles.iconoX]}
+                    source={require('../iconos/X2x.png')}
+                  />
+                </Pressable>
                 <Text style={styles.ayuda}>{txtUbicDecripcion}</Text>
               </View>
               <View style={styles.viewCampos}>
@@ -202,6 +303,9 @@ class getFormulario extends React.Component {
             <View>
               <WebView
                 ref={'Map_Ref'}
+                onMessage={(event) => {
+                  this.onMessage(event);
+                }}
                 source={{
                   html:
                     `
@@ -256,10 +360,12 @@ class getFormulario extends React.Component {
                       mymap.on('move', function () {
                         marker.setLatLng(mymap.getCenter());
                         radius.setLatLng(mymap.getCenter());
+                        window.postMessage(mymap.getCenter());
                       });
                       
                       function onLocationFound(e) {
-                      marker.setLatLng(mymap.getCenter());      
+                      marker.setLatLng(mymap.getCenter());  
+                      console.log(mymap.getCenter())
                     }
                       
                     function onLocationError(e) {
@@ -286,7 +392,10 @@ class getFormulario extends React.Component {
                 style={[styles.btnCapas, {top: 60}]}
                 onPress={this.getUbicacion}>
                 <Image
-                  style={styles.iconoCapa}
+                  style={[
+                    styles.iconoCapa,
+                    {height: '70%', width: '50%', top: 5},
+                  ]}
                   source={require('../iconos/marcador-de-posicion.png')}
                 />
               </Pressable>
@@ -349,6 +458,39 @@ const styles = StyleSheet.create({
     padding: 0,
     backgroundColor: 'gray',
   },
+  btnOculto: {
+    display: 'none',
+  },
+  btnLimpiar: {
+    position: 'absolute',
+    top: 30,
+    right: 0,
+    width: 40,
+    height: 40,
+  },
+  iconoX: {
+    position: 'absolute',
+    height: '25%',
+    width: '25%',
+    left: 7,
+    top: 7,
+  },
+  TextUbic: {
+    paddingLeft: 35,
+  },
+  btnUbic: {
+    position: 'absolute',
+    alignItems: 'center',
+    top: 25,
+    left: 0,
+    width: 40,
+    height: 40,
+    zIndex: 5,
+  },
+  iconoText: {
+    height: '60%',
+    width: '60%',
+  },
   btnCapas: {
     position: 'absolute',
     width: 40,
@@ -364,6 +506,8 @@ const styles = StyleSheet.create({
   iconoCapa: {
     position: 'absolute',
     bottom: 10,
+    height: '55%',
+    width: '55%',
   },
   TextInput: {
     width: 'auto',

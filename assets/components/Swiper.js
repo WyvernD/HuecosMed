@@ -22,8 +22,12 @@ class SliderScreen extends React.Component {
   componentDidMount() {
     setTimeout(() => {
       this.props.navigation.navigate('Formulario');
+      this.state.slider = false;
     }, 6000);
   }
+  state = {
+    slider: true,
+  };
 
   render() {
     return (
@@ -31,6 +35,7 @@ class SliderScreen extends React.Component {
         <StatusBar hidden={true} />
         <Swiper
           autoplay={true}
+          speed={100}
           showsButtons={false}
           showsPagination={false}
           activeDot={false}
@@ -46,11 +51,15 @@ class SliderScreen extends React.Component {
               style={styles.iconHuecos}
             />
             <Image
+              source={require('../iconos/La_app.png')}
+              style={styles.iconLaApp}
+            />
+            <Image
               source={require('../iconos/arbolito.png')}
               style={styles.iconFooter}
             />
           </View>
-          <View style={styles.slide}>
+          <View style={this.state.slider ? styles.slide : styles.slideOff}>
             <Image
               source={require('../iconos/Rectángulo.png')}
               style={styles.image}
@@ -79,7 +88,7 @@ class SliderScreen extends React.Component {
               </Pressable>
             </View>
           </View>
-          <View style={styles.slide}>
+          <View style={this.state.slider ? styles.slide : styles.slideOff}>
             <Image
               source={require('../iconos/Rectángulo.png')}
               style={styles.image}
@@ -126,6 +135,9 @@ const styles = StyleSheet.create({
     zIndex: 4,
     opacity: 0.51,
   },
+  slideOff: {
+    display: 'none',
+  },
   iconCentro: {
     top: 190,
     width: 200,
@@ -142,25 +154,32 @@ const styles = StyleSheet.create({
     zIndex: 2,
     opacity: 0.51,
   },
-  iconFooter: {
-    width: 484,
-    height: 339,
-    position: 'absolute',
-    bottom: 0,
-  },
-  iconCarta: {},
   iconLogo: {
-    top: 147,
-    width: 266,
-    height: 143,
+    top: '5%',
+    width: '85%',
+    paddingLeft: 10,
+    paddingRight: 100,
+    height: 180,
     position: 'absolute',
     opacity: 1,
   },
   iconHuecos: {
-    top: 301,
-    width: 242,
-    height: 105,
+    top: '27%',
+    width: '70%',
+    height: 110,
     position: 'absolute',
+  },
+  iconLaApp: {
+    top: '45%',
+    width: '75%',
+    height: 110,
+    position: 'absolute',
+  },
+  iconFooter: {
+    width: width,
+    height: '40%',
+    position: 'absolute',
+    bottom: 0,
   },
   contenedor: {
     position: 'absolute',
@@ -205,6 +224,7 @@ const styles = StyleSheet.create({
   },
   slide: {
     flex: 1,
+    width: width,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.write,

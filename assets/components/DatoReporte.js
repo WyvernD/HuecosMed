@@ -16,14 +16,23 @@ import {Dimensions} from 'react-native';
 const {width, height} = Dimensions.get('window');
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 const txtUbicacion = 'Ubicación actual del daño en la via';
+
 const txtUbicDecripcion =
   'Puede digitar la dirección donde se encuentra el daño o ubicar el PIN en el mapa';
 const txtPunto = 'Digite un punto de referencia de la dirección';
 const txtPuntoDEscripcion =
   'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
+const imagen =
+  'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=0b21bca6-7f26-439a-860a-07324bba5b7c&api_key=CometServer1&access_token=1610066091_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_f572e020bc5cd4b196dea4356a063b5ffb861a88';
 
 const encode64 = require('../libs/B64');
 const urlRoot = 'https://www.medellin.gov.co';
+
+const validate = (email) => {
+  const expression = /(?!.*\.{2})^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([\t]*\r\n)?[\t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([\t]*\r\n)?[\t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
+
+  return expression.test(String(email).toLowerCase());
+};
 
 class DatosReporte extends React.Component {
   state = {
@@ -42,58 +51,120 @@ class DatosReporte extends React.Component {
   };
 
   validarReporte = () => {
-    let consulta = [
-      {
-        SQL: 'SQL_HUECOS_GUARDAR_HUECO_MOVIL',
-        N: 9,
-        DATOS: [
-          {
-            P1: '',
-            P2: '',
-            P3: '',
-            P4: this.state.data.email,
-            P5: this.state.data.location,
-            P6: this.state.data.description,
-            P7: this.state.data.latitude + '',
-            P8: this.state.data.longitude + '',
-            P9: '',
-          },
-        ],
-      },
-    ];
-    let url =
-      urlRoot +
-      '/HuecosMed/guardardatos.hyg?str_sql=' +
-      encode64(JSON.stringify(consulta));
-    console.log(url);
-    fetch(url, {
-      method: 'POST',
-    })
-      .then((response) => response)
-      .then((responseJson) => {
-        console.log(responseJson);
-        if (responseJson.ok) {
-          Alert.alert(
-            'Gracias por su reporte',
-            'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
-              'Recuerde su número de reporte : 01',
-            [{text: 'Aceptar', onPress: () => console.log('Aceptar Pressed')}],
-            {cancelable: false},
-          );
-        } else {
-          Alert.alert(
-            'Error al generar reporte',
-            responseJson,
-            [{text: 'Aceptar', onPress: () => console.log('Aceptar Pressed')}],
-            {cancelable: false},
-          );
-        }
+    if (
+      this.state.data.email != undefined &&
+      this.state.data.email != '' &&
+      this.state.data.location != undefined &&
+      this.state.data.location != ''
+    ) {
+      if (!validate(this.state.data.email)) {
+        Alert.alert(
+          'Correo invalido',
+          'El correo electrónico es incorrecto',
+          [
+            {
+              text: 'Aceptar',
+              onPress: () => console.log('Aceptar Pressed'),
+            },
+          ],
+          {cancelable: false},
+        );
+        return;
+      }
+
+      let consulta = [
+        {
+          SQL: 'SQL_HUECOS_GUARDAR_HUECO_MOVIL',
+          N: 9,
+          DATOS: [
+            {
+              P1: '',
+              P2: '',
+              P3: '',
+              P4: this.state.data.email,
+              P5: this.state.data.location,
+              P6: this.state.data.description,
+              P7: this.state.data.latitude + '',
+              P8: this.state.data.longitude + '',
+              P9: '',
+            },
+          ],
+        },
+      ];
+      let url =
+        urlRoot +
+        '/HuecosMed/guardardatos.hyg?str_sql=' +
+        encode64(JSON.stringify(consulta));
+
+      fetch(url, {
+        method: 'POST',
       })
-      .catch((error) => {
-        console.error('catch', error);
-      });
+        .then((response) => response)
+        .then((responseJson) => {
+          console.log(responseJson);
+          if (responseJson.ok) {
+            Alert.alert(
+              'Gracias por su reporte',
+              'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
+                'Recuerde su número de reporte : ',
+              [
+                {
+                  text: 'Aceptar',
+                  onPress: () => console.log('Aceptar Pressed'),
+                },
+              ],
+              {cancelable: false},
+            );
+          } else {
+            Alert.alert(
+              'Error al generar reporte',
+              responseJson,
+              [
+                {
+                  text: 'Aceptar',
+                  onPress: () => console.log('Aceptar Pressed'),
+                },
+              ],
+              {cancelable: false},
+            );
+          }
+        })
+        .catch((error) => {
+          console.error('catch', error);
+        });
+    } else {
+      Alert.alert(
+        'Campo obligatorio',
+        'El campo correo electrónico es obligatorio.',
+        [{text: 'Aceptar', onPress: () => console.log('Aceptar Pressed')}],
+        {cancelable: false},
+      );
+    }
   };
 
+  guardarFoto = () => {
+
+    let data = {
+      method: 'POST',
+      credentials: 'same-origin',
+      mode: 'same-origin',
+      body: JSON.stringify({}),
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+      },
+    };
+    let url = urlRoot + '/HuecosMed/subirFotoHueco.hyg';
+    return fetch(url, data)
+      .then((response) => response.json()) // promise
+      .then((json) => this.receiveAppos(json));
+  };
+  receiveAppos = (json) => {};
+
+  onsubmit = () => {
+    const data = {...this.state.data};
+    console.log(data);
+  };
   render() {
     return (
       <View style={styles.Container}>
@@ -125,17 +196,17 @@ class DatosReporte extends React.Component {
                   <div id="mapid" style="width: 100%; height: 100vh;"></div>
                   <script>
                       var mymap = L.map('mapid').setView([` +
-                      this.state.data.latitude +
+                    this.state.data.latitude +
                     ',' +
-                      this.state.data.longitude +
+                    this.state.data.longitude +
                     '], ' +
-                      this.state.data.zoom +
+                    this.state.data.zoom +
                     `);
                       
                       var myIcon = L.icon({
-                      iconUrl: ` +
-                    require('../iconos/pin.png') +
-                    `,
+                      iconUrl: '` +
+                    imagen +
+                    `',
                       iconAnchor:   [22, 43], // point of the icon which will correspond to marker's location
                   });
                     
@@ -157,13 +228,13 @@ class DatosReporte extends React.Component {
                   
                       var popup = L.popup();               
                       
-                      mymap.on('move', function () {
+                      mymap.on('move', function (e) {
                         marker.setLatLng(mymap.getCenter());
                         radius.setLatLng(mymap.getCenter());
                       });
                       
-                      function onLocationFound(e) {
-                      marker.setLatLng(mymap.getCenter());      
+                      function onLocationFound(e) { 
+                      marker.setLatLng(mymap.getCenter());
                     }
                       
                     function onLocationError(e) {
@@ -203,7 +274,13 @@ class DatosReporte extends React.Component {
                   <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
                 </View>
                 <View style={styles.viewCampos}>
-                  <View style={styles.campoImagen}>
+                  <View
+                    style={
+                      this.state.data.urlFoto == undefined ||
+                      this.state.data.urlFoto == ''
+                        ? styles.btnOculto
+                        : styles.campoImagen
+                    }>
                     <Image
                       source={{
                         uri: this.state.data.urlFoto,
@@ -218,10 +295,12 @@ class DatosReporte extends React.Component {
                   </Text>
                   <TextInput
                     style={styles.TextInput}
+                    autoCompleteType={'email'}
                     value={this.state.data.email}
                     onChangeText={(event) =>
                       this.onchangeInputs(event, 'email')
                     }
+                    onChange={(event) => this.onchangeInputs(event, 'email')}
                   />
                   <Text style={styles.ayuda}>
                     {
@@ -258,6 +337,9 @@ const styles = StyleSheet.create({
     padding: 0,
     backgroundColor: 'gray',
   },
+  btnOculto: {
+    display: 'none',
+  },
   campoImagen: {
     width: 90,
     height: 90,
@@ -284,7 +366,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     left: 0,
     margin: 0,
-    paddingLeft: 18,
+    paddingLeft: 5,
     padding: 0,
   },
   ayuda: {

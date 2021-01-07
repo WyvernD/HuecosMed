@@ -48,8 +48,9 @@ class MyCamera extends React.Component {
 
   takePicture = async function () {
     if (this.camera) {
-      const options = {quality: 1080, base64: true};
+      const options = {quality: 0.5, base64: true, zoom: true};
       const objCamara = await this.camera.takePictureAsync(options);
+      this.setState({data: {...this.state.data, base64: objCamara.base64}});
       this.onchangeDatos(objCamara.uri, 'urlFoto');
     }
   };
@@ -63,14 +64,13 @@ class MyCamera extends React.Component {
           }}
           style={styles.preview}
           type={RNCamera.Constants.Type.back}
-          flashMode={RNCamera.Constants.FlashMode.off}
-          autoFocus={RNCamera.Constants.AutoFocus.on}
-          zoom={10}
+          flashMode={RNCamera.Constants.FlashMode.auto}
+          zoom={0}
           onGoogleVisionBarcodesDetected={({barcodes}) => {
             console.log('RNCamera', barcodes);
           }}
         />
-        <View style={{flex: 0, flexDirection: 'row', justifyContent: 'center'}}>
+        <View style={styles.viewFoto}>
           <TouchableOpacity
             onPress={this.takePicture.bind(this)}
             style={styles.capture}>
@@ -93,6 +93,15 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: 'black',
   },
+  viewFoto: {
+    flex: 0,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    left: '50%',
+    right: '50%',
+    position: 'absolute',
+    bottom: 0,
+  },
   preview: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -106,7 +115,7 @@ const styles = StyleSheet.create({
   capture: {
     flex: 0,
     backgroundColor: '#fff',
-    borderRadius: 5,
+    borderRadius: 50,
     padding: 15,
     paddingHorizontal: 20,
     alignSelf: 'center',

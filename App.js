@@ -9,6 +9,12 @@ import ReporteView from './assets/components/DatoReporte';
 
 const Stack = createStackNavigator();
 
+const navigationOptions = {
+  title: '',
+  headerTintColor: '#fff',
+  headerTransparent: true,
+};
+
 const App: () => ReactNode = () => {
   return (
     <NavigationContainer>
@@ -16,27 +22,31 @@ const App: () => ReactNode = () => {
         <Stack.Screen
           name="Home"
           component={SliderView}
-          options={{title: '', headerTransparent: true}}
+          options={navigationOptions}
         />
         <Stack.Screen
           name="Formulario"
           component={FormView}
-          options={{title: '', headerTransparent: true}}
+          options={{
+            title: '',
+            headerTransparent: true,
+            headerTintColor: 'transparent',
+          }}
         />
         <Stack.Screen
           name="Camera"
           component={CamaraView}
-          options={{title: '', headerTransparent: true}}
+          options={navigationOptions}
         />
         <Stack.Screen
           name="Galery"
           component={GaleryView}
-          options={{title: '', headerTransparent: true}}
+          options={navigationOptions}
         />
         <Stack.Screen
           name="Reporte"
           component={ReporteView}
-          options={{title: '', headerTransparent: true}}
+          options={navigationOptions}
         />
       </Stack.Navigator>
     </NavigationContainer>
