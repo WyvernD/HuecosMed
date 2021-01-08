@@ -1,7 +1,5 @@
 import React from 'react';
 
-var datosReporte = {latitude: 6.2447305, longitude: -75.5760133, zoom: 15};
-
 const html_script =
   `
 <!DOCTYPE html>
@@ -17,20 +15,12 @@ const html_script =
 <body style="padding: 0; margin: 0">
 <div id="mapid" style="width: 100%; height: 100vh;"></div>
 <script>
-	var mymap = L.map('mapid').setView([` +
-  datosReporte.latitude +
-  ',' +
-  datosReporte.longitude +
-  '], ' +
-  datosReporte.zoom +
-  `);
+	var mymap = L.map('mapid').setView([6.2447305,-75.5760133],15);
 	
 	var myIcon = L.icon({
-    iconUrl: ` +
-      require('../iconos/pin.png') +
-  ` ,
-    iconAnchor:   [22, 43], // point of the icon which will correspond to marker's location
-});
+        iconUrl: 'https://www.medellin.gov.co/siro/HuecosMed_web/img/iconos/004-pin.png',
+        iconAnchor: [22, 42], // point of the icon which will correspond to marker's location 
+    });
   
 	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
 		maxZoom: 18,

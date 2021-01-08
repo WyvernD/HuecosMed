@@ -16,6 +16,7 @@ import {
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {WebView} from 'react-native-webview';
+import WebHtml from './MapComponent';
 import Geolocation from '@react-native-community/geolocation';
 import {Dimensions} from 'react-native';
 
@@ -31,24 +32,13 @@ const txtPuntoDEscripcion =
   'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
 const urlRoot = 'https://www.medellin.gov.co';
 
-const imagen =
-  'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=0b21bca6-7f26-439a-860a-07324bba5b7c&api_key=CometServer1&access_token=1610066091_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_f572e020bc5cd4b196dea4356a063b5ffb861a88';
-
-const layer =
-  'https://tiles.arcgis.com/tiles/FZVaYraI7sEGQ6rF/arcgis/rest/services/CartografiaBase/VectorTileServer?f=jsapi&cacheKey=81053369bb5849b1';
-
-const layer1 =
-  'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw';
-
-var urlLocalPhoto =
-  'E:/WebApplication/secretaria_oopp/HuecosMed/HuecosMed_photos/';
-
 class getFormulario extends React.Component {
   state = {
     data: {},
     consulta: [],
   };
   async componentDidMount() {
+    this.cargarDatos();
     if (Platform.OS === 'ios') {
       Geolocation.getCurrentPosition(
         //Will give you the current location
@@ -76,7 +66,9 @@ class getFormulario extends React.Component {
         console.log(err);
       }
     }
+  }
 
+  async cargarDatos() {
     const consulta = {
       SQL: 'SQL_HUECOS_CONSULTAR_PARAMETROS_HUECO',
       N: 0,
@@ -89,20 +81,21 @@ class getFormulario extends React.Component {
     fetch(url, {
       method: 'GET',
     })
-      .then((response) => response.json())
+      .then((e) => e.json())
       .then((responseJson) => {
-        this.setState({
-          consulta: responseJson[0],
-        });
+        this.setState({consulta: responseJson[0]});
+        this.refs.Map_Ref.injectJavaScript(
+          ` mymap.flyTo([${this.state.consulta.latitude}, ${this.state.consulta.longitude}], ${this.state.consulta.zoom})`,
+        );
       })
       .catch((error) => {
         console.error(error);
       });
   }
+
   async componentDidUpdate() {
     if (this.props.route.params != undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
-      // console.log(datosRes.urlFoto);
       this.state.data.urlFoto = datosRes.urlFoto;
       this.state.data.base64 = datosRes.base64;
       this.onchangeInputs(datosRes.urlFoto, 'urlFoto');
@@ -115,11 +108,13 @@ class getFormulario extends React.Component {
     const data = {...this.state.data};
     //console.log(data);
   };
+  getDirecciones(text) {}
 
   onchangeInputs = (text, name) => {
     this.setState({data: {...this.state.data, [name]: text}});
     this.onsubmit();
   };
+
   camaraPress = () => {
     this.props.navigation.navigate('Camera', {
       datos: JSON.stringify({...this.state.data}),
@@ -129,6 +124,7 @@ class getFormulario extends React.Component {
   galeryPress = () => {
     //this.props.navigation.navigate('Galery');
   };
+
   validarReporte = () => {
     const datos = {...this.state.data};
     const datosMapa = this.refs.Map_Ref.injectJavaScript('mymap.getCenter()');
@@ -147,6 +143,7 @@ class getFormulario extends React.Component {
       );
     }
   };
+
   limpiar = () => {
     this.setState({
       data: {...this.state.data, ['location']: ''},
@@ -162,12 +159,12 @@ class getFormulario extends React.Component {
       .then((responseJson) => {
         console.log(responseJson);
         if (responseJson.Y == undefined || responseJson.X == undefined) {
-          Alert.alert(
+          /*Alert.alert(
             'No se encontro la ubicación',
             'Por favor verifique la dirección.',
-            [{text: 'Aceptar', onPress: () => console.log('Aceptar Pressed')}],
+            [{text: 'Aceptar'}],
             {cancelable: false},
-          );
+          );*/
         } else {
           const currentLatitude = responseJson.Y[0];
           const currentLongitude = responseJson.X[0];
@@ -176,18 +173,6 @@ class getFormulario extends React.Component {
               ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
             );
             this.llenarUbicacion(currentLatitude, currentLongitude);
-          } else {
-            Alert.alert(
-              'No se encontro La ubicación',
-              'Por favor verifique la dirección.',
-              [
-                {
-                  text: 'Aceptar',
-                  onPress: () => console.log('Aceptar Pressed'),
-                },
-              ],
-              {cancelable: false},
-            );
           }
         }
       })
@@ -196,9 +181,7 @@ class getFormulario extends React.Component {
       });
   };
 
-  getCapas = () => {
-
-  };
+  getCapas = () => {};
   onMessage = (datos) => {
     console.log(datos);
   };
@@ -239,13 +222,22 @@ class getFormulario extends React.Component {
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.body}>
           <ScrollView style={styles.scrollView}>
-            <View style={styles.contenedorHead}>
-              <View style={styles.headerDiv}>
+            <WebView
+              ref={'Map_Ref'}
+              onMessage={(event) => {
+                this.onMessage(event);
+              }}
+              source={{
+                html: WebHtml,
+              }}
+              style={styles.WebviewMapa}
+            />
+            <View style={[styles.contenedor, styles.contenedorTop]}>
+              <View
+                style={[styles.headerDiv, {paddingLeft: 0, paddingRight: 0}]}>
                 <Text style={styles.texthead}>{'Reportar a HUECOSMED'}</Text>
               </View>
-            </View>
-            <View style={styles.contenedor}>
-              <View style={styles.viewCampos}>
+              <View style={[styles.viewCampos, styles.viewCampospad]}>
                 <Text style={styles.Text}>{txtUbicacion}</Text>
                 <Pressable
                   style={
@@ -263,9 +255,10 @@ class getFormulario extends React.Component {
                 <TextInput
                   style={[styles.TextInput, styles.TextUbic]}
                   value={this.state.data.location}
-                  onChangeText={(event) =>
-                    this.onchangeInputs(event, 'location')
-                  }
+                  onChangeText={(event) => [
+                    this.onchangeInputs(event, 'location'),
+                    this.ubicarDireccion(event),
+                  ]}
                 />
                 <Pressable
                   style={
@@ -286,7 +279,7 @@ class getFormulario extends React.Component {
                 </Pressable>
                 <Text style={styles.ayuda}>{txtUbicDecripcion}</Text>
               </View>
-              <View style={styles.viewCampos}>
+              <View style={[styles.viewCampos, styles.viewCampospad]}>
                 <Text style={styles.Text}>{txtPunto}</Text>
                 <TextInput
                   style={styles.TextInput}
@@ -299,113 +292,27 @@ class getFormulario extends React.Component {
                 <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
               </View>
             </View>
-            <View>
-              <WebView
-                ref={'Map_Ref'}
-                onMessage={(event) => {
-                  this.onMessage(event);
-                }}
-                source={{
-                  html:
-                    `
-                  <!DOCTYPE html>
-                  <html>
-                  <head>
-                      <title>Quick Start - Leaflet</title>
-                      <meta charset="utf-8">
-                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                      <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico">
-                      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="">
-                      <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-                   </head>
-                  <body style="padding: 0; margin: 0">
-                  <div id="mapid" style="width: 100%; height: 100vh;"></div>
-                  <script>
-                      var mymap = L.map('mapid').setView([` +
-                    this.state.consulta.latitude +
-                    ',' +
-                    this.state.consulta.longitude +
-                    '], ' +
-                    this.state.consulta.zoom +
-                    `);
-                      
-                      var myIcon = L.icon({
-                      iconUrl: '` +
-                    imagen +
-                    `',
-                          iconAnchor:   [22, 43], // point of the icon which will correspond to marker's location
-                        });
-                    
-                      L.tileLayer('` +
-                    layer1 +
-                    `', {
-                          maxZoom: 18,
-                          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-                              'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-                          id: 'mapbox/streets-v11',
-                          tileSize: 512,
-                          zoomOffset: -1
-                      }).addTo(mymap);
-                      
-                      var marker = L.marker(mymap.getCenter(), {icon: myIcon}).addTo(mymap);
-                      var radius = L.circle(mymap.getCenter(), {
-                            color: "#58D2FF",
-                            fillColor: "#58D2FF",
-                            radius: 10.0
-                        }).addTo(mymap);
-                  
-                      var popup = L.popup();               
-                      
-                      mymap.on('move', function () {
-                        marker.setLatLng(mymap.getCenter());
-                        radius.setLatLng(mymap.getCenter());
-                        window.postMessage(mymap.getCenter());
-                      });
-                      
-                      function onLocationFound(e) {
-                      marker.setLatLng(mymap.getCenter());  
-                      console.log(mymap.getCenter())
-                    }
-                      
-                    function onLocationError(e) {
-                      alert(e.message);
-                    }
-                  
-                    mymap.on('locationfound', onLocationFound);
-                    mymap.on('locationerror', onLocationError);
-                  
-                  </script>
-                  </body>
-                  </html>
-                  `,
-                }}
-                style={styles.WebviewMapa}
+            <Pressable style={styles.btnCapas} onPress={this.getCapas}>
+              <Image
+                style={styles.iconoCapa}
+                source={require('../iconos/grupo3/capax2.png')}
               />
-              <Pressable style={styles.btnCapas} onPress={this.getCapas}>
-                <Image
-                  style={styles.iconoCapa}
-                  source={require('../iconos/capas.png')}
-                />
-              </Pressable>
-              <Pressable
-                style={[styles.btnCapas, {top: 60}]}
-                onPress={this.getUbicacion}>
-                <Image
-                  style={[
-                    styles.iconoCapa,
-                    {height: '70%', width: '50%', top: 5},
-                  ]}
-                  source={require('../iconos/marcador-de-posicion.png')}
-                />
-              </Pressable>
-            </View>
-            <View style={styles.viewFooter}>
+            </Pressable>
+            <Pressable
+              style={[styles.btnCapas, {top: '45%'}]}
+              onPress={this.getUbicacion}>
+              <Image
+                style={styles.iconoCapa}
+                source={require('../iconos/grupo3/ubicarx2.png')}
+              />
+            </Pressable>
+            <View>
               <View style={styles.footer}>
                 <Text style={styles.TextFooter}>
                   {'Agregar fotografia real (Opcional)'}
                 </Text>
                 <View style={styles.viewCamposFotos}>
-                  <View>
+                  <View style={styles.viewCamposBtn}>
                     <Text style={styles.Txtfoto}>Tomar fotografia</Text>
                     <View style={styles.viewicono}>
                       <Pressable style={styles.btn} onPress={this.camaraPress}>
@@ -416,7 +323,7 @@ class getFormulario extends React.Component {
                       </Pressable>
                     </View>
                   </View>
-                  <View>
+                  <View style={styles.viewCamposBtn}>
                     <Text style={styles.Txtfoto}>Agregar de galeria</Text>
                     <View style={styles.viewicono}>
                       <Pressable style={styles.btn} onPress={this.galeryPress}>
@@ -427,15 +334,15 @@ class getFormulario extends React.Component {
                       </Pressable>
                     </View>
                   </View>
-                  <Pressable
+                </View>
+                <Pressable
                     style={styles.buttonReportar}
                     onPress={this.validarReporte}>
-                    <Image
+                  <Image
                       style={styles.buttonOk}
                       source={require('../iconos/REPORTAR.png')}
-                    />
-                  </Pressable>
-                </View>
+                  />
+                </Pressable>
               </View>
             </View>
           </ScrollView>
@@ -450,11 +357,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   WebviewMapa: {
-    flex: 1,
-    height: height / 2,
+    height: height,
     width: width,
     margin: 0,
     padding: 0,
+    position: 'relative',
+    zIndex: 1,
     backgroundColor: 'gray',
   },
   btnOculto: {
@@ -462,10 +370,19 @@ const styles = StyleSheet.create({
   },
   btnLimpiar: {
     position: 'absolute',
-    top: 30,
-    right: 0,
+    top: '25%',
+    right: '5%',
     width: 40,
     height: 40,
+  },
+  btnUbic: {
+    position: 'absolute',
+    alignItems: 'center',
+    top: '25%',
+    left: '10%',
+    width: 40,
+    height: 40,
+    zIndex: 5,
   },
   iconoX: {
     position: 'absolute',
@@ -477,15 +394,6 @@ const styles = StyleSheet.create({
   TextUbic: {
     paddingLeft: 35,
   },
-  btnUbic: {
-    position: 'absolute',
-    alignItems: 'center',
-    top: 25,
-    left: 0,
-    width: 40,
-    height: 40,
-    zIndex: 5,
-  },
   iconoText: {
     height: '60%',
     width: '60%',
@@ -494,19 +402,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 40,
     height: 40,
-    right: 35,
-    top: 10,
+    right: 25,
+    top: '38%',
     borderRadius: 50,
-    borderWidth: 1,
     alignItems: 'center',
-    borderColor: '#03AED8',
-    backgroundColor: '#ffffff',
   },
   iconoCapa: {
-    position: 'absolute',
-    bottom: 10,
-    height: '55%',
-    width: '55%',
+    position: 'relative',
+    height: '100%',
+    width: '100%',
   },
   TextInput: {
     width: 'auto',
@@ -541,24 +445,35 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   contenedor: {
-    backgroundColor: '#ffffffd6',
+    backgroundColor: '#fff',
+    opacity: 0.9,
+    width: width,
+    position: 'absolute',
+  },
+  viewCampospad: {
     paddingLeft: 30,
     paddingRight: 30,
-    opacity: 10,
   },
   body: {
     fontFamily: 'Maven Pro',
   },
+  contenedorTop: {
+    top: 0,
+  },
   contenedorHead: {
-    backgroundColor: '#ffffffd6',
     paddingLeft: 0,
     paddingRight: 0,
+    backgroundColor: '#fff',
+    width: width,
+    position: 'absolute',
   },
   headerDiv: {
     backgroundColor: '#03AED8',
     height: 80,
     borderBottomRightRadius: 30,
     borderBottomLeftRadius: 30,
+    paddingLeft: 0,
+    paddingRight: 0,
   },
   texthead: {
     color: '#fff',
@@ -571,9 +486,6 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 20,
   },
-  viewFooter: {
-    height: 100,
-  },
   image: {
     flex: 1,
     resizeMode: 'cover',
@@ -584,10 +496,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
     width: width,
-    height: 200,
+    height: 180,
     backgroundColor: '#ffffff',
     alignItems: 'center',
-    opacity: 0.8,
+    opacity: 0.7,
+    zIndex: 1,
   },
   TextFooter: {
     color: '#575a5d',
@@ -601,45 +514,48 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     textAlign: 'center',
     position: 'absolute',
-    bottom: 45,
+    bottom: 50,
     padding: 0,
-    height: 120,
+    height: 130,
     width: 'auto',
+    zIndex: 1,
   },
   viewicono: {
-    width: 150,
+    width: '100%',
     textAlign: 'center',
-    height: 40,
+    height: 39,
     borderRadius: 50,
     borderColor: '#03AED8',
     borderWidth: 2,
-    margin: 2,
-    paddingLeft: 30,
     zIndex: 1,
     backgroundColor: '#ffffff',
   },
+  viewCamposBtn: {
+    marginLeft: '5%',
+    marginRight: '5%',
+  },
   btn: {
     height: 40,
-    width: 100,
-    zIndex: 1,
+    zIndex: 2,
   },
   icono: {
     top: 5,
-    width: 35,
-    height: 28,
-    left: 30,
+    left: '35%',
+    right: '40%',
+    width: '35%',
+    height: '63%',
     position: 'relative',
     alignItems: 'center',
   },
   Txtfoto: {
     color: '#575a5d',
-    marginTop: -50,
-    fontSize: 14,
+    fontSize: 12,
     textAlign: 'center',
   },
   buttonReportar: {
     position: 'absolute',
-    bottom: -20,
+    bottom: 20,
+    zIndex: 3,
   },
   buttonOk: {
     width: 310,

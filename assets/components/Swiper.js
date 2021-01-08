@@ -15,111 +15,126 @@ import {Colors} from 'react-native/Libraries/NewAppScreen';
 const {width, height} = Dimensions.get('window');
 
 class SliderScreen extends React.Component {
-  handlePress = () => {
+  saltarPress = () => {
     this.props.navigation.navigate('Formulario');
   };
-
-  componentDidMount() {
-    setTimeout(() => {
-      this.props.navigation.navigate('Formulario');
-      this.state.slider = false;
-    }, 6000);
-  }
   state = {
     slider: true,
   };
 
+  async componentDidMount() {
+    setTimeout(() => {
+      if (this.state.slider) {
+        this.render();
+        this.state.slider = false;
+        this.props.navigation.navigate('Home', {
+          dato: JSON.stringify({...this.state.slider}),
+        });
+      }
+    }, 5000);
+  }
+
+  async componentDidUpdate() {
+    if (this.props.route.params != undefined) {
+      const datosRes = JSON.parse(this.props.route.params.dato);
+      this.state.slider = datosRes.slider;
+      this.props.route.params = undefined;
+    }
+  }
+
   render() {
-    return (
-      <View style={styles.Container}>
-        <StatusBar hidden={true} />
-        <Swiper
-          autoplay={true}
-          speed={100}
-          showsButtons={false}
-          showsPagination={false}
-          activeDot={false}
-          preloadImages={true}
-          loop={false}>
-          <View style={styles.slide}>
-            <Image
-              source={require('../iconos/logo-alcaldía.png')}
-              style={styles.iconLogo}
-            />
-            <Image
-              source={require('../iconos/HUECOSMED.png')}
-              style={styles.iconHuecos}
-            />
-            <Image
-              source={require('../iconos/La_app.png')}
-              style={styles.iconLaApp}
-            />
-            <Image
-              source={require('../iconos/arbolito.png')}
-              style={styles.iconFooter}
-            />
-          </View>
-          <View style={this.state.slider ? styles.slide : styles.slideOff}>
-            <Image
-              source={require('../iconos/Rectángulo.png')}
-              style={styles.image}
-            />
-            <Image
-              source={require('../iconos/rayitas.png')}
-              style={styles.iconFondo}
-            />
-            <Image
-              source={require('../iconos/vocina.png')}
-              style={styles.iconCentro}
-            />
-            <Image
-              source={require('../iconos/Ellipse.png')}
-              style={styles.iconCircle}
-            />
-            <View style={styles.contenedor}>
-              <Text style={styles.reportar}>REPORTA</Text>
-              <Text style={styles.reportarDanos}>LOS DAÑOS EN LA VIA</Text>
-              <Text style={styles.reportarTxt}>
-                A través de HUECOSMED podrá reportar los baches o huecos que se
-                encuentran en vía pública
-              </Text>
-              <Pressable style={styles.btn} onPress={this.handlePress}>
-                <Text style={styles.btnText}>Saltar</Text>
-              </Pressable>
+    if (this.state.slider) {
+      return (
+        <View style={styles.Container}>
+          <StatusBar hidden={true} />
+          <Swiper
+            autoplay={false}
+            showsButtons={false}
+            showsPagination={false}
+            activeDot={false}
+            preloadImages={true}
+            loop={false}>
+            <View style={styles.slide}>
+              <Image
+                source={require('../iconos/logo-alcaldía.png')}
+                style={styles.iconLogo}
+              />
+              <Image
+                source={require('../iconos/HUECOSMED.png')}
+                style={styles.iconHuecos}
+              />
+              <Image
+                source={require('../iconos/La_app.png')}
+                style={styles.iconLaApp}
+              />
+              <Image
+                source={require('../iconos/arbolito.png')}
+                style={styles.iconFooter}
+              />
             </View>
-          </View>
-          <View style={this.state.slider ? styles.slide : styles.slideOff}>
-            <Image
-              source={require('../iconos/Rectángulo.png')}
-              style={styles.image}
-            />
-            <Image
-              source={require('../iconos/rayitas.png')}
-              style={styles.iconFondo}
-            />
-            <Image
-              source={require('../iconos/carta.png')}
-              style={[styles.iconCentro, styles.iconCarta]}
-            />
-            <Image
-              source={require('../iconos/Ellipse.png')}
-              style={styles.iconCircle}
-            />
-            <View style={styles.contenedor}>
-              <Text style={styles.reportar}>RECIBE</Text>
-              <Text style={styles.reportarDanos}>NOTIFICACIONES</Text>
-              <Text style={styles.reportarTxt}>
-                Estamos en contacto con el ciudadano para informar oportunamente
-                sobre la solución a su reporte
-              </Text>
-              <Pressable style={styles.btn} onPress={this.handlePress}>
-                <Text style={styles.btnText}>Saltar</Text>
-              </Pressable>
+          </Swiper>
+        </View>
+      );
+    } else {
+      return (
+        <View style={styles.Container}>
+          <StatusBar hidden={true} />
+          <Swiper
+            autoplay={false}
+            showsButtons={false}
+            showsPagination={false}
+            activeDot={true}
+            preloadImages={true}
+            loop={false}>
+            <View style={styles.slide}>
+              <Image
+                source={require('../iconos/Rectángulo.png')}
+                style={styles.image}
+              />
+              <Image
+                source={require('../iconos/grupo1/Grupo_1001.png')}
+                style={styles.iconFondo}
+              />
+              <View style={styles.contenedor}>
+                <Text style={styles.reportar}>{'REPORTA'}</Text>
+                <Text style={styles.reportarDanos}>
+                  {'LOS DAÑOS EN LA VÍA'}
+                </Text>
+                <Text style={styles.reportarTxt}>
+                  {
+                    'A través de HUECOSMED podrá reportar los baches o huecos que se se encuentran en vía pública'
+                  }
+                </Text>
+                <Pressable style={styles.btn} onPress={this.saltarPress}>
+                  <Text style={styles.btnText}>{'Saltar'}</Text>
+                </Pressable>
+              </View>
             </View>
-          </View>
-        </Swiper>
-      </View>
-    );
+            <View style={styles.slide}>
+              <Image
+                source={require('../iconos/Rectángulo.png')}
+                style={styles.image}
+              />
+              <Image
+                source={require('../iconos/grupo2/Grupo_1002.png')}
+                style={styles.iconFondo}
+              />
+              <View style={styles.contenedor}>
+                <Text style={styles.reportar}>RECIBE</Text>
+                <Text style={styles.reportarDanos}>NOTIFICACIONES</Text>
+                <Text style={styles.reportarTxt}>
+                  Estamos en contacto con el ciudadano para informar
+                  oportunamente sobre la solución a su reporte
+                </Text>
+                <Pressable style={styles.btn} onPress={this.saltarPress}>
+                  <Text style={styles.btnText}>Saltar</Text>
+                </Pressable>
+              </View>
+            </View>
+          </Swiper>
+        </View>
+      );
+    }
   }
 }
 
@@ -128,50 +143,38 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   iconFondo: {
-    top: 51,
-    width: 259,
-    height: 440,
+    top: 20,
+    height: '50%',
+    marginLeft: '25%',
+    marginRight: '25%',
     position: 'absolute',
     zIndex: 4,
-    opacity: 0.51,
   },
   slideOff: {
     display: 'none',
   },
-  iconCentro: {
-    top: 190,
-    width: 200,
-    height: 200,
-    position: 'absolute',
-    opacity: 1,
-    zIndex: 3,
-  },
-  iconCircle: {
-    top: 135,
-    width: 350,
-    height: 350,
-    position: 'absolute',
-    zIndex: 2,
-    opacity: 0.51,
-  },
   iconLogo: {
     top: '5%',
-    width: '85%',
-    paddingLeft: 10,
-    paddingRight: 100,
-    height: 180,
+    width: width,
+    marginLeft: '25%',
+    marginRight: '25%',
+    height: '20%',
     position: 'absolute',
     opacity: 1,
   },
   iconHuecos: {
     top: '27%',
-    width: '70%',
+    width: width,
+    marginLeft: '30%',
+    marginRight: '30%',
     height: 110,
     position: 'absolute',
   },
   iconLaApp: {
-    top: '45%',
-    width: '75%',
+    top: '50%',
+    width: width,
+    marginLeft: '25%',
+    marginRight: '25%',
     height: 110,
     position: 'absolute',
   },
@@ -195,6 +198,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     bottom: 80,
     color: '#fff',
+    fontFamily: 'Maven Pro',
     fontWeight: 'bold',
   },
   reportarDanos: {

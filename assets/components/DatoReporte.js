@@ -14,6 +14,7 @@ import {
 import {WebView} from 'react-native-webview';
 import {Dimensions} from 'react-native';
 const {width, height} = Dimensions.get('window');
+import WebHtml from './MapComponent';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 const txtUbicacion = 'Ubicación actual del daño en la via';
 
@@ -22,10 +23,6 @@ const txtUbicDecripcion =
 const txtPunto = 'Digite un punto de referencia de la dirección';
 const txtPuntoDEscripcion =
   'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
-const imagen =
-  'https://cdn-sharing.adobecc.com/id/urn:aaid:sc:US:43234e60-0eaa-4fa8-8bdd-6fc7b735afd8;version=0?component_id=0b21bca6-7f26-439a-860a-07324bba5b7c&api_key=CometServer1&access_token=1610066091_urn%3Aaaid%3Asc%3AUS%3A43234e60-0eaa-4fa8-8bdd-6fc7b735afd8%3Bpublic_f572e020bc5cd4b196dea4356a063b5ffb861a88';
-
-const encode64 = require('../libs/B64');
 const urlRoot = 'http://192.168.1.10:8888'; //'https://www.medellin.gov.co';
 
 const validate = (email) => {
@@ -38,23 +35,24 @@ class DatosReporte extends React.Component {
   state = {
     data: {},
     consulta: [],
+    load: false,
   };
 
   async componentDidMount() {
     this.state.data = JSON.parse(this.props.route.params.datos).data;
     this.state.consulta = JSON.parse(this.props.route.params.datos).consulta;
+    this.refs.Map_Ref.injectJavaScript(
+      ` mymap.flyTo([${this.state.data.latitude}, ${this.state.data.longitude}], ${this.state.data.zoom})`,
+    );
     this.onchangeInputs();
   }
 
   onchangeInputs = (text, name) => {
     this.setState({data: {...this.state.data, [name]: text}});
-    console.log({...this.state.data});
+    //console.log({...this.state.data});
   };
 
   validarReporte = () => {
-    this.guardarFoto();
-    return;
-
     if (
       this.state.data.email != undefined &&
       this.state.data.email != '' &&
@@ -65,117 +63,85 @@ class DatosReporte extends React.Component {
         Alert.alert(
           'Correo invalido',
           'El correo electrónico es incorrecto',
-          [
-            {
-              text: 'Aceptar',
-              onPress: () => console.log('Aceptar Pressed'),
-            },
-          ],
+          [{text: 'Aceptar'}],
           {cancelable: false},
         );
         return;
       }
 
-      let consulta = [
-        {
-          SQL: 'SQL_HUECOS_GUARDAR_HUECO_MOVIL',
-          N: 9,
-          DATOS: [
-            {
-              P1: '',
-              P2: '',
-              P3: '',
-              P4: this.state.data.email,
-              P5: this.state.data.location,
-              P6: this.state.data.description,
-              P7: this.state.data.latitude + '',
-              P8: this.state.data.longitude + '',
-              P9: '',
-            },
-          ],
-        },
-      ];
-      let url =
-        urlRoot +
-        '/HuecosMed/guardardatos.hyg?str_sql=' +
-        encode64(JSON.stringify(consulta));
-
-      fetch(url, {
-        method: 'POST',
-      })
-        .then((response) => response)
-        .then((responseJson) => {
-          console.log(responseJson);
-          if (responseJson.ok) {
-            Alert.alert(
-              'Gracias por su reporte',
-              'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
-                'Recuerde su número de reporte : ',
-              [
-                {
-                  text: 'Aceptar',
-                  onPress: () => console.log('Aceptar Pressed'),
-                },
-              ],
-              {cancelable: false},
-            );
-          } else {
-            Alert.alert(
-              'Error al generar reporte',
-              responseJson,
-              [
-                {
-                  text: 'Aceptar',
-                  onPress: () => console.log('Aceptar Pressed'),
-                },
-              ],
-              {cancelable: false},
-            );
-          }
-        })
-        .catch((error) => {
-          console.error('catch', error);
-        });
+      this.guardarDatos();
     } else {
       Alert.alert(
         'Campo obligatorio',
         'El campo correo electrónico es obligatorio.',
-        [{text: 'Aceptar', onPress: () => console.log('Aceptar Pressed')}],
+        [{text: 'Aceptar'}],
         {cancelable: false},
       );
     }
   };
 
-  guardarFoto = () => {
-    console.log('paso');
-    let url = urlRoot + '/HuecosMed/guardarFoto.hyg';
+  async guardarDatos() {
+    let url = urlRoot + '/HuecosMed/guardarInfoHueco.hyg';
     let data = {
       ruta: this.state.consulta.URLLOCALPHOTO,
       nombre: this.state.data.urlFoto.split('/').pop(),
       archivo: this.state.data.base64,
+      insert: JSON.stringify({
+        email: this.state.data.email + '',
+        location: this.state.data.location + '',
+        description: this.state.data.description + '',
+        latitude: this.state.data.latitude + '',
+        longitude: this.state.data.longitude + '',
+        ruta: this.state.consulta.URLLOCALPHOTO,
+      }),
     };
-    let fetchData = {
+    const requestOptions = {
       method: 'POST',
-      body: data,
-      headers: new Headers(),
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(data),
     };
-    console.log(fetchData);
-    fetch(url, fetchData)
+    fetch(url, requestOptions)
+      .then((e) => e.json())
       .then(function (res) {
-        console.log(res);
-      })
-      .then(function (res) {
-        console.log(res);
+        console.warn(res);
+        if (res != undefined) {
+          const Ok = res.split(',')[0];
+          const numReporte = res.split(',')[1];
+          if (Ok === 'Ok') {
+            Alert.alert(
+              'Gracias por su reporte',
+              'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
+                'Recuerde su número de reporte : ' +
+                numReporte,
+              [{text: 'Aceptar'}],
+              {cancelable: false},
+            );
+          } else {
+            this.onMensage(res);
+          }
+        }
       })
       .catch((error) => {
-        console.error('catch', error);
+        this.onMensage(error);
       });
-  };
+  }
+
+  onMensage(msg) {
+    Alert.alert(
+      'Error al generar el reporte',
+      'Intente de nuevo mas tarde',
+      [{text: 'Aceptar'}],
+      {
+        cancelable: false,
+      },
+    );
+  }
 
   onsubmit = () => {
     const data = {...this.state.data};
     console.log(data);
   };
+
   render() {
     return (
       <View style={styles.Container}>
@@ -187,87 +153,16 @@ class DatosReporte extends React.Component {
                 <Text style={styles.texthead}>{'Datos del reporte'}</Text>
               </View>
             </View>
-            <View>
-              <WebView
-                ref={'Map_Ref'}
-                source={{
-                  html:
-                    `
-                  <!DOCTYPE html>
-                  <html>
-                  <head>
-                      <title>Quick Start - Leaflet</title>
-                      <meta charset="utf-8">
-                      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                      <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico">
-                      <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A==" crossorigin="">
-                      <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js" integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA==" crossorigin=""></script>
-                   </head>
-                  <body style="padding: 0; margin: 0">
-                  <div id="mapid" style="width: 100%; height: 100vh;"></div>
-                  <script>
-                      var mymap = L.map('mapid').setView([` +
-                    this.state.data.latitude +
-                    ',' +
-                    this.state.data.longitude +
-                    '], ' +
-                    this.state.data.zoom +
-                    `);
-                      
-                      var myIcon = L.icon({
-                      iconUrl: '` +
-                    imagen +
-                    `',
-                      iconAnchor:   [22, 43], // point of the icon which will correspond to marker's location
-                  });
-                    
-                      L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-                          maxZoom: 18,
-                          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-                              'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-                          id: 'mapbox/streets-v11',
-                          tileSize: 512,
-                          zoomOffset: -1
-                      }).addTo(mymap);
-                      
-                      var marker = L.marker(mymap.getCenter(), {icon: myIcon}).addTo(mymap);
-                      var radius = L.circle(mymap.getCenter(), {
-                            color: "#58D2FF",
-                            fillColor: "#58D2FF",
-                            radius: 10.0
-                        }).addTo(mymap);
-                  
-                      var popup = L.popup();               
-                      
-                      mymap.on('move', function (e) {
-                        marker.setLatLng(mymap.getCenter());
-                        radius.setLatLng(mymap.getCenter());
-                      });
-                      
-                      function onLocationFound(e) { 
-                      marker.setLatLng(mymap.getCenter());
-                    }
-                      
-                    function onLocationError(e) {
-                      alert(e.message);
-                    }
-                  
-                    mymap.on('locationfound', onLocationFound);
-                    mymap.on('locationerror', onLocationError);
-                  
-                  </script>
-                  </body>
-                  </html>
-                  `,
-                }}
-                style={styles.WebviewMapa}
-              />
-            </View>
+            <WebView
+              ref={'Map_Ref'}
+              source={{
+                html: WebHtml,
+              }}
+              style={styles.WebviewMapa}
+            />
             <View style={styles.viewFooter}>
               <View style={styles.footer}>
-                <View style={styles.viewCampos}>
-                  <Text style={styles.TextIni}>Datos del reporte</Text>
-                </View>
+                <Text style={styles.TextIni}>Datos del reporte</Text>
                 <View style={styles.viewCampos}>
                   <Text style={styles.Text}>{txtUbicacion}</Text>
                   <TextInput
@@ -284,14 +179,15 @@ class DatosReporte extends React.Component {
                   />
                   <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
                 </View>
-                <View style={styles.viewCampos}>
-                  <View
-                    style={
-                      this.state.data.urlFoto == undefined ||
-                      this.state.data.urlFoto == ''
-                        ? styles.btnOculto
-                        : styles.campoImagen
-                    }>
+                <View
+                  style={
+                    this.state.data.urlFoto == undefined ||
+                    this.state.data.urlFoto == ''
+                      ? styles.btnOculto
+                      : styles.viewCampos
+                  }>
+                  <Text style={styles.TextIni}>Fotografías de evidencia</Text>
+                  <View style={styles.campoImagen}>
                     <Image
                       source={{
                         uri: this.state.data.urlFoto,
@@ -321,7 +217,9 @@ class DatosReporte extends React.Component {
                 </View>
               </View>
               <Pressable
-                style={styles.buttonReportar}
+                style={
+                  this.state.load ? {display: 'none'} : styles.buttonReportar
+                }
                 onPress={this.validarReporte}>
                 <Image
                   style={styles.buttonOk}
@@ -342,7 +240,7 @@ const styles = StyleSheet.create({
   },
   WebviewMapa: {
     flex: 1,
-    height: height / 3,
+    height: height / 3 - 65,
     width: width,
     margin: 0,
     padding: 0,
@@ -388,7 +286,7 @@ const styles = StyleSheet.create({
   viewCampos: {
     flexDirection: 'column',
     padding: 0,
-    paddingBottom: 15,
+    paddingBottom: 10,
     height: 'auto',
   },
   scrollView: {
@@ -420,16 +318,12 @@ const styles = StyleSheet.create({
     bottom: 20,
   },
   viewFooter: {
-    height: height / 2,
     alignItems: 'center',
   },
   footer: {
     paddingTop: 10,
-    position: 'absolute',
     bottom: 0,
     width: width,
-    height: 500,
-    backgroundColor: '#ffffffd6',
     paddingLeft: 30,
     paddingRight: 30,
     opacity: 0.8,
@@ -437,11 +331,10 @@ const styles = StyleSheet.create({
   TextIni: {
     textAlign: 'left',
     fontWeight: 'bold',
-    fontSize: 20,
+    fontSize: 18,
   },
   buttonReportar: {
-    position: 'absolute',
-    bottom: 20,
+    bottom: 2,
   },
   buttonOk: {
     width: 304,
