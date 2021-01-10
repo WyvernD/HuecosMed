@@ -75,7 +75,6 @@ class DatosReporte extends React.Component {
         );
         return;
       }
-
       this.guardarDatos();
     } else {
       Alert.alert(
@@ -207,7 +206,7 @@ class DatosReporte extends React.Component {
                   <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
                 </View>
                 <View style={styles.viewCampos}>
-                  <Text style={styles.TextIni}>Fotografías de evidencia</Text>
+                  <Text style={styles.TextIni}>Fotografía de evidencia</Text>
                   <View
                     style={
                       this.state.data.urlFoto == undefined ||
@@ -340,7 +339,7 @@ class DatosReporte extends React.Component {
 
     this.setModalVisible(false);
     ImagePicker.launchCamera(options, (response) => {
-      console.log('Response = ', response);
+      //console.log('Response = ', response);
       if (response.didCancel) {
         console.log('User cancelled image picker');
       } else if (response.error) {
@@ -366,7 +365,7 @@ class DatosReporte extends React.Component {
     };
     this.setModalVisible(false);
     ImagePicker.launchImageLibrary(options, (response) => {
-      console.log('Response = ', response);
+      //console.log('Response = ', response);
 
       if (response.didCancel) {
         console.log('User cancelled image picker');
@@ -417,10 +416,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   openButton: {
-    top: '0%',
-    right: '0%',
-    width: 30,
-    height: 30,
+    top: '1%',
+    right: '1%',
+    width: 25,
+    height: 25,
     position: 'absolute',
     textAlign: 'center',
     borderRadius: 50,
@@ -433,7 +432,7 @@ const styles = StyleSheet.create({
     top: -8,
     fontWeight: 'bold',
     textAlign: 'center',
-    fontSize: 25,
+    fontSize: 22,
   },
   fotoModal: {
     width: width / 2 + 100,
