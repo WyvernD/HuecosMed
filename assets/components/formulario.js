@@ -40,14 +40,13 @@ class getFormulario extends React.Component {
   };
   async componentDidMount() {
     this.cargarDatos();
-
+    this.requestCameraPermission();
     if (Platform.OS === 'ios') {
       Geolocation.getCurrentPosition(
         //Will give you the current location
         (position) => {
           const currentLongitude = JSON.stringify(position.coords.longitude);
           const currentLatitude = JSON.stringify(position.coords.latitude);
-          alert(currentLatitude);
           this.refs.Map_Ref.injectJavaScript(`
           mymap.setView([${currentLatitude}, ${currentLongitude}], 18)`);
           this.llenarUbicacion(currentLatitude, currentLongitude);
@@ -72,21 +71,27 @@ class getFormulario extends React.Component {
   }
   async requestCameraPermission() {
     try {
-      const granted = await PermissionsAndroid.request(
+      await PermissionsAndroid.requestMultiple([
         PermissionsAndroid.PERMISSIONS.CAMERA,
-        {
-          title: 'Permiso de la cámara',
-          message:
-            'La aplicación necesita acceso a tu cámara para que pueda tomar fotos impresionantes.',
-        },
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      ]);
+
+      const permissionCamera = await PermissionsAndroid.check(
+        'android.permission.CAMERA',
       );
-      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
-        console.log('You can use the camera');
-      } else {
-        console.log('Camera permission denied');
+      const permissionWriteStorage = await PermissionsAndroid.check(
+        'android.permission.WRITE_EXTERNAL_STORAGE',
+      );
+
+      if (!permissionCamera || !permissionWriteStorage) {
+        return {
+          error: 'Failed to get the required permissions.',
+        };
       }
-    } catch (err) {
-      console.log('Error: ', err);
+    } catch (error) {
+      return {
+        error: 'Failed to get the required permissions.',
+      };
     }
   }
   async cargarDatos() {
@@ -126,11 +131,11 @@ class getFormulario extends React.Component {
   };
 
   camaraPress = () => {
-    this.requestCameraPermission();
     let options = {
       storageOptions: {
         skipBackup: true,
         path: 'images',
+        privateDirectory: true,
       },
     };
     ImagePicker.launchCamera(options, (response) => {
@@ -156,6 +161,7 @@ class getFormulario extends React.Component {
       storageOptions: {
         skipBackup: true,
         path: 'images',
+        privateDirectory: true,
       },
     };
     ImagePicker.launchImageLibrary(options, (response) => {
@@ -478,7 +484,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     position: 'relative',
     fontWeight: 'bold',
-    fontFamily: 'MavenPro-Medium',
+    fontFamily: 'MavenPro_500Medium',
     textAlign: 'left',
     left: 0,
     margin: 0,

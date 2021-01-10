@@ -5,7 +5,6 @@ import {
   StyleSheet,
   Text,
   Image,
-  Alert,
   Dimensions,
   Pressable,
 } from 'react-native';
@@ -138,6 +137,7 @@ class SliderScreen extends React.Component {
   }
 }
 
+
 const styles = StyleSheet.create({
   Container: {
     flex: 1,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   contenedor: {
     position: 'absolute',
     alignItems: 'center',
-    fontFamily: 'MavenPro-Medium',
+    fontFamily: 'Maven Pro',
     textAlign: 'center',
     paddingRight: 65,
     paddingLeft: 65,
@@ -198,27 +198,24 @@ const styles = StyleSheet.create({
     fontSize: 30,
     bottom: 80,
     color: '#fff',
-    fontFamily: 'MavenPro-Medium',
+    fontFamily: 'Maven Pro',
     fontWeight: 'bold',
   },
   reportarDanos: {
     fontSize: 25,
     bottom: 80,
-    fontFamily: 'MavenPro-Medium',
     color: '#fff',
   },
   reportarTxt: {
     fontSize: 14,
     bottom: 70,
     color: '#fff',
-    fontFamily: 'MavenPro-Medium',
     textAlign: 'center',
     opacity: 1,
   },
   btnText: {
     fontSize: 14,
-    color: '#FFFFFF',
-    fontFamily: 'MavenPro-Regular',
+    color: '#fff',
     textAlign: 'center',
   },
   btn: {
@@ -244,5 +241,6 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
 });
+
 
 export default SliderScreen;

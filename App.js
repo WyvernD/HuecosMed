@@ -9,7 +9,7 @@ const Stack = createStackNavigator();
 
 const navigationOptions = {
   title: '',
-  headerTintColor: '#fff',
+  headerTintColor: 'transparent',
   headerTransparent: true,
 };
 
@@ -25,11 +25,7 @@ const App: () => ReactNode = () => {
         <Stack.Screen
           name="Formulario"
           component={FormView}
-          options={{
-            title: '',
-            headerTransparent: true,
-            headerTintColor: 'transparent',
-          }}
+          options={navigationOptions}
         />
         <Stack.Screen
           name="Reporte"
