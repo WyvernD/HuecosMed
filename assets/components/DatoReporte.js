@@ -9,6 +9,7 @@ import {
   Text,
   TextInput,
   Pressable,
+  Modal,
   View,
 } from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -16,6 +17,7 @@ import {Dimensions} from 'react-native';
 const {width, height} = Dimensions.get('window');
 import WebHtml from './MapComponent';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
+import ImagePicker from 'react-native-image-picker';
 const txtUbicacion = 'Ubicación actual del daño en la via';
 
 const txtUbicDecripcion =
@@ -24,7 +26,7 @@ const txtPunto = 'Digite un punto de referencia de la dirección';
 const txtPuntoDEscripcion =
   'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
 const urlRoot = 'https://www.medellin.gov.co';
-
+const encode64 = require('../libs/B64');
 const validate = (email) => {
   const expression = /(?!.*\.{2})^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([\t]*\r\n)?[\t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([\t]*\r\n)?[\t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
 
@@ -36,6 +38,11 @@ class DatosReporte extends React.Component {
     data: {},
     consulta: [],
     load: false,
+    modalVisible: false,
+  };
+
+  setModalVisible = (visible) => {
+    this.setState({modalVisible: visible});
   };
 
   async componentDidMount() {
@@ -81,6 +88,10 @@ class DatosReporte extends React.Component {
   };
 
   async guardarDatos() {
+    Alert.alert('Enviando reporte', 'Espere..', [{text: 'Aceptar'}], {
+      cancelable: false,
+    });
+
     let url = urlRoot + '/HuecosMed/guardarInfoHueco.hyg';
     let data = {
       ruta: this.state.consulta.URLLOCALPHOTO,
@@ -101,42 +112,59 @@ class DatosReporte extends React.Component {
       body: JSON.stringify(data),
     };
     fetch(url, requestOptions)
-      .then((e) => e.json())
-      .then(function (res) {
-        console.warn(res);
-        if (res != undefined) {
-          const Ok = res.split(',')[0];
-          const numReporte = res.split(',')[1];
-          if (Ok === 'Ok') {
-            Alert.alert(
-              'Gracias por su reporte',
-              'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
-                'Recuerde su número de reporte : ' +
-                numReporte,
-              [{text: 'Aceptar'}],
-              {cancelable: false},
-            );
-          } else {
-            this.onMensage(res);
-          }
-        }
+      .then((e) => {
+        this.onMensage();
       })
-      .catch((error) => {
-        this.onMensage(error);
-      });
+      .then(function (res) {
+        this.onMensage();
+      })
+      .catch((error) => {});
   }
 
-  onMensage(error) {
-    Alert.alert('Error al generar el reporte', error, [{text: 'Aceptar'}], {
-      cancelable: false,
-      },
-    );
+  async onMensage() {
+    const consulta = {
+      SQL: 'SQL_HUECOS_CONSULTAR_ULTIMO',
+      N: 0,
+      DATOS: {},
+    };
+    let url =
+      urlRoot +
+      '/HuecosMed/cargardatos.hyg?str_sql=' +
+      encodeURIComponent(encode64(JSON.stringify(consulta)));
+    fetch(url, {
+      method: 'GET',
+    })
+      .then((e) => e.json())
+      .then((responseJson) => {
+        console.log(responseJson);
+        console.log(responseJson[0].ID);
+        Alert.alert(
+          'Gracias por su reporte',
+          'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
+            'Recuerde su número de reporte : ' +
+            responseJson[0].ID,
+          [{text: 'Aceptar'}],
+          {cancelable: false},
+        );
+        this.props.navigation.navigate('Formulario');
+      });
   }
 
   onsubmit = () => {
     const data = {...this.state.data};
     console.log(data);
   };
+
+  renderFileData() {
+    return (
+      <Image source={{uri: this.state.data.urlFoto}} style={styles.captures} />
+    );
+  }
+  renderFileModal() {
+    return (
+      <Image source={{uri: this.state.data.urlFoto}} style={styles.fotoModal} />
+    );
+  }
 
   render() {
     return (
@@ -172,26 +200,35 @@ class DatosReporte extends React.Component {
                   <TextInput
                     style={styles.TextInput}
                     value={this.state.data.description}
+                    onChangeText={(event) =>
+                      this.onchangeInputs(event, 'description')
+                    }
                   />
                   <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
                 </View>
-                <View
-                  style={
-                    this.state.data.urlFoto == undefined ||
-                    this.state.data.urlFoto == ''
-                      ? styles.btnOculto
-                      : styles.viewCampos
-                  }>
+                <View style={styles.viewCampos}>
                   <Text style={styles.TextIni}>Fotografías de evidencia</Text>
-                  <View style={styles.campoImagen}>
-                    <Image
-                      source={{
-                        uri: this.state.data.urlFoto,
-                      }}
-                      style={styles.captures}
-                    />
+                  <View
+                    style={
+                      this.state.data.urlFoto == undefined ||
+                      this.state.data.urlFoto == ''
+                        ? styles.btnOculto
+                        : styles.campoImagen
+                    }>
+                    <Pressable
+                      onPress={() => {
+                        this.setModalVisible(true);
+                      }}>
+                      {this.renderFileData()}
+                    </Pressable>
                   </View>
                 </View>
+
+                {this.state.data.urlFoto === undefined ||
+                this.state.data.urlFoto === ''
+                  ? this.renderSinFoto()
+                  : null}
+
                 <View style={styles.viewCampos}>
                   <Text style={styles.Text}>
                     {'Ingresa el correo electrónico de quien reporta'}
@@ -223,14 +260,205 @@ class DatosReporte extends React.Component {
                 />
               </Pressable>
             </View>
+            {this.renderModal()}
           </ScrollView>
         </SafeAreaView>
       </View>
     );
   }
+
+  renderSinFoto() {
+    return (
+      <View>
+        <Text style={styles.TextFooter}>
+          {'Agregar fotografia real (Opcional)'}
+        </Text>
+        <View style={styles.viewCamposBtn}>
+          <Pressable style={styles.btn} onPress={this.camaraPress}>
+            <Image
+              style={styles.icono}
+              source={require('../iconos/grupo4/001-camara-fotografica.png')}
+            />
+          </Pressable>
+          <Pressable style={styles.btn} onPress={this.galeryPress}>
+            <Image
+              style={styles.icono}
+              source={require('../iconos/grupo4/002-foto.png')}
+            />
+          </Pressable>
+        </View>
+      </View>
+    );
+  }
+
+  renderModal() {
+    return (
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={this.state.modalVisible}
+        onRequestClose={() => {
+          Alert.alert('Modal has been closed.');
+        }}>
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            {this.renderFileModal()}
+            <Pressable
+              style={styles.openButton}
+              onPress={() => {
+                this.setModalVisible(false);
+              }}>
+              <Text style={styles.textStyle}>x</Text>
+            </Pressable>
+            <View style={styles.viewCamposBtn}>
+              <Pressable style={styles.btn} onPress={this.camaraPress}>
+                <Image
+                  style={styles.icono}
+                  source={require('../iconos/grupo4/001-camara-fotografica.png')}
+                />
+              </Pressable>
+              <Pressable style={styles.btn} onPress={this.galeryPress}>
+                <Image
+                  style={styles.icono}
+                  source={require('../iconos/grupo4/002-foto.png')}
+                />
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
+  camaraPress = () => {
+    let options = {
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+
+    this.setModalVisible(false);
+    ImagePicker.launchCamera(options, (response) => {
+      console.log('Response = ', response);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+      } else {
+        console.log('response', JSON.stringify(response));
+        this.state.data.urlFoto = response.uri;
+        this.state.data.base64 = response.data;
+        this.setModalVisible(true);
+      }
+    });
+  };
+
+  galeryPress = () => {
+    let options = {
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    this.setModalVisible(false);
+    ImagePicker.launchImageLibrary(options, (response) => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+      } else {
+        console.log('response', JSON.stringify(response));
+        this.state.data.urlFoto = response.uri;
+        this.state.data.base64 = response.data;
+        this.setModalVisible(true);
+      }
+    });
+  };
 }
 
 const styles = StyleSheet.create({
+  fondo: {
+    backgroundColor: 'red',
+  },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 22,
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 25,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  TextFooter: {
+    color: '#575a5d',
+    marginTop: 5,
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  openButton: {
+    top: '0%',
+    right: '0%',
+    width: 30,
+    height: 30,
+    position: 'absolute',
+    textAlign: 'center',
+    borderRadius: 50,
+    borderWidth: 1,
+    backgroundColor: '#fff',
+    borderColor: '#03AED8',
+  },
+  textStyle: {
+    color: '#03AED8',
+    top: -8,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 25,
+  },
+  fotoModal: {
+    width: width / 2 + 100,
+    height: height / 2,
+    borderRadius: 5,
+  },
+  viewCamposBtn: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  btn: {
+    borderColor: '#03AED8',
+    alignItems: 'center',
+    marginTop: 5,
+    marginLeft: 5,
+    marginRight: 5,
+    paddingLeft: '5%',
+    paddingRight: '5%',
+    paddingTop: 5,
+    paddingBottom: 5,
+    borderWidth: 2,
+    borderRadius: 20,
+  },
+  //fin modal.
   Container: {
     flex: 1,
   },

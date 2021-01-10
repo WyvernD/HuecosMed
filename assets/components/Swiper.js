@@ -82,9 +82,9 @@ class SliderScreen extends React.Component {
           <Swiper
             autoplay={false}
             showsButtons={false}
-            showsPagination={false}
-            activeDot={true}
-            preloadImages={true}
+            showsPagination={true}
+            activeDot={false}
+            preloadImages={false}
             loop={false}>
             <View style={styles.slide}>
               <Image
@@ -106,7 +106,7 @@ class SliderScreen extends React.Component {
                   }
                 </Text>
                 <Pressable style={styles.btn} onPress={this.saltarPress}>
-                  <Text style={styles.btnText}>{'Saltar'}</Text>
+                  <Text style={styles.btnText}>SALTAR</Text>
                 </Pressable>
               </View>
             </View>
@@ -127,7 +127,7 @@ class SliderScreen extends React.Component {
                   oportunamente sobre la solución a su reporte
                 </Text>
                 <Pressable style={styles.btn} onPress={this.saltarPress}>
-                  <Text style={styles.btnText}>Saltar</Text>
+                  <Text style={styles.btnText}>SALTAR</Text>
                 </Pressable>
               </View>
             </View>
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   contenedor: {
     position: 'absolute',
     alignItems: 'center',
-    fontFamily: 'Maven Pro',
+    fontFamily: 'MavenPro-Medium',
     textAlign: 'center',
     paddingRight: 65,
     paddingLeft: 65,
@@ -198,24 +198,27 @@ const styles = StyleSheet.create({
     fontSize: 30,
     bottom: 80,
     color: '#fff',
-    fontFamily: 'Maven Pro',
+    fontFamily: 'MavenPro-Medium',
     fontWeight: 'bold',
   },
   reportarDanos: {
     fontSize: 25,
     bottom: 80,
+    fontFamily: 'MavenPro-Medium',
     color: '#fff',
   },
   reportarTxt: {
     fontSize: 14,
     bottom: 70,
     color: '#fff',
+    fontFamily: 'MavenPro-Medium',
     textAlign: 'center',
     opacity: 1,
   },
   btnText: {
     fontSize: 14,
-    color: '#fff',
+    color: '#FFFFFF',
+    fontFamily: 'MavenPro-Regular',
     textAlign: 'center',
   },
   btn: {

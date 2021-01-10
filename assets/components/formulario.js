@@ -17,6 +17,7 @@ import {
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import {WebView} from 'react-native-webview';
 import WebHtml from './MapComponent';
+import ImagePicker from 'react-native-image-picker';
 import Geolocation from '@react-native-community/geolocation';
 import {Dimensions} from 'react-native';
 
@@ -39,6 +40,7 @@ class getFormulario extends React.Component {
   };
   async componentDidMount() {
     this.cargarDatos();
+
     if (Platform.OS === 'ios') {
       Geolocation.getCurrentPosition(
         //Will give you the current location
@@ -47,7 +49,8 @@ class getFormulario extends React.Component {
           const currentLatitude = JSON.stringify(position.coords.latitude);
           alert(currentLatitude);
           this.refs.Map_Ref.injectJavaScript(`
-        mymap.setView([${currentLatitude}, ${currentLongitude}], 18)`);
+          mymap.setView([${currentLatitude}, ${currentLongitude}], 18)`);
+          this.llenarUbicacion(currentLatitude, currentLongitude);
         },
         (error) => {
           alert(error.message);
@@ -67,7 +70,25 @@ class getFormulario extends React.Component {
       }
     }
   }
-
+  async requestCameraPermission() {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        {
+          title: 'Permiso de la cámara',
+          message:
+            'La aplicación necesita acceso a tu cámara para que pueda tomar fotos impresionantes.',
+        },
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('You can use the camera');
+      } else {
+        console.log('Camera permission denied');
+      }
+    } catch (err) {
+      console.log('Error: ', err);
+    }
+  }
   async cargarDatos() {
     const consulta = {
       SQL: 'SQL_HUECOS_CONSULTAR_PARAMETROS_HUECO',
@@ -93,17 +114,6 @@ class getFormulario extends React.Component {
       });
   }
 
-  async componentDidUpdate() {
-    if (this.props.route.params != undefined) {
-      const datosRes = JSON.parse(this.props.route.params.dato);
-      this.state.data.urlFoto = datosRes.urlFoto;
-      this.state.data.base64 = datosRes.base64;
-      this.onchangeInputs(datosRes.urlFoto, 'urlFoto');
-      this.onchangeInputs(datosRes.base64, 'base64');
-      this.props.route.params = undefined;
-    }
-  }
-
   onsubmit = () => {
     const data = {...this.state.data};
     //console.log(data);
@@ -116,13 +126,55 @@ class getFormulario extends React.Component {
   };
 
   camaraPress = () => {
-    this.props.navigation.navigate('Camera', {
-      datos: JSON.stringify({...this.state.data}),
+    this.requestCameraPermission();
+    let options = {
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    ImagePicker.launchCamera(options, (response) => {
+      console.log('Response = ', response);
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+      } else {
+        const source = {uri: response.uri};
+        console.log('response', JSON.stringify(response));
+        this.state.data.urlFoto = response.uri;
+        this.state.data.base64 = response.data;
+      }
     });
   };
 
   galeryPress = () => {
-    //this.props.navigation.navigate('Galery');
+    let options = {
+      storageOptions: {
+        skipBackup: true,
+        path: 'images',
+      },
+    };
+    ImagePicker.launchImageLibrary(options, (response) => {
+      console.log('Response = ', response);
+
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.error) {
+        console.log('ImagePicker Error: ', response.error);
+      } else if (response.customButton) {
+        console.log('User tapped custom button: ', response.customButton);
+        alert(response.customButton);
+      } else {
+        const source = {uri: response.uri};
+        console.log('response', JSON.stringify(response));
+        this.state.data.urlFoto = response.uri;
+        this.state.data.base64 = response.data;
+      }
+    });
   };
 
   validarReporte = () => {
@@ -149,6 +201,7 @@ class getFormulario extends React.Component {
       data: {...this.state.data, ['location']: ''},
     });
   };
+
   ubicarDireccion = () => {
     let url =
       this.state.consulta.buscarDir + encode64(this.state.data.location);
@@ -318,7 +371,7 @@ class getFormulario extends React.Component {
                       <Pressable style={styles.btn} onPress={this.camaraPress}>
                         <Image
                           style={styles.icono}
-                          source={require('../iconos/001-camara-fotografica.png')}
+                          source={require('../iconos/grupo4/001-camara-fotografica.png')}
                         />
                       </Pressable>
                     </View>
@@ -329,18 +382,18 @@ class getFormulario extends React.Component {
                       <Pressable style={styles.btn} onPress={this.galeryPress}>
                         <Image
                           style={styles.icono}
-                          source={require('../iconos/002-foto.png')}
+                          source={require('../iconos/grupo4/002-foto.png')}
                         />
                       </Pressable>
                     </View>
                   </View>
                 </View>
                 <Pressable
-                    style={styles.buttonReportar}
-                    onPress={this.validarReporte}>
+                  style={styles.buttonReportar}
+                  onPress={this.validarReporte}>
                   <Image
-                      style={styles.buttonOk}
-                      source={require('../iconos/REPORTAR.png')}
+                    style={styles.buttonOk}
+                    source={require('../iconos/REPORTAR.png')}
                   />
                 </Pressable>
               </View>
@@ -425,6 +478,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
     position: 'relative',
     fontWeight: 'bold',
+    fontFamily: 'MavenPro-Medium',
     textAlign: 'left',
     left: 0,
     margin: 0,
@@ -455,7 +509,7 @@ const styles = StyleSheet.create({
     paddingRight: 30,
   },
   body: {
-    fontFamily: 'Maven Pro',
+    fontFamily: 'MavenPro-Medium',
   },
   contenedorTop: {
     top: 0,
@@ -480,7 +534,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     position: 'absolute',
-    fontFamily: 'Maven Pro',
+    fontFamily: 'MavenPro-Medium',
     fontSize: 20,
     left: 20,
     right: 20,
@@ -551,6 +605,7 @@ const styles = StyleSheet.create({
     color: '#575a5d',
     fontSize: 12,
     textAlign: 'center',
+    marginBottom: 5,
   },
   buttonReportar: {
     position: 'absolute',
