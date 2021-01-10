@@ -18,6 +18,7 @@ const {width, height} = Dimensions.get('window');
 import WebHtml from './MapComponent';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import ImagePicker from 'react-native-image-picker';
+
 const txtUbicacion = 'Ubicación actual del daño en la via';
 
 const txtUbicDecripcion =
@@ -516,7 +517,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   body: {
-    fontFamily: 'Maven Pro',
+    fontFamily: 'MavenPro_500Medium',
   },
   contenedorHead: {
     backgroundColor: '#ffffffd6',
