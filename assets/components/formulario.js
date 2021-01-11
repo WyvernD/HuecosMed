@@ -12,6 +12,7 @@ import {
   TextInput,
   Pressable,
   View,
+  TouchableOpacity,
 } from 'react-native';
 
 import {Colors} from 'react-native/Libraries/NewAppScreen';
@@ -20,6 +21,7 @@ import WebHtml from './MapComponent';
 import ImagePicker from 'react-native-image-picker';
 import Geolocation from '@react-native-community/geolocation';
 import {Dimensions} from 'react-native';
+import Autocomplete from 'react-native-autocomplete-input';
 
 const encode64 = require('../libs/B64');
 
@@ -37,7 +39,10 @@ class getFormulario extends React.Component {
   state = {
     data: {},
     consulta: [],
+    filterData: [],
+    selectedItem: {},
   };
+
   async componentDidMount() {
     this.cargarDatos();
     this.requestCameraPermission();
@@ -241,9 +246,6 @@ class getFormulario extends React.Component {
   };
 
   getCapas = () => {};
-  onMessage = (datos) => {
-    console.log(datos);
-  };
 
   getUbicacion = () => {
     Geolocation.getCurrentPosition(
@@ -275,6 +277,63 @@ class getFormulario extends React.Component {
     });
   };
 
+  searchDirection = (direccion) => {
+    console.log(direccion);
+    if (direccion.length > 0){
+      const consulta = {
+        SQL: 'SQL_HUECOS_CONSULTAR_DIRECCIONES_LISSTAG',
+        N: 1,
+        DATOS: {P1: direccion},
+      };
+      let url =
+        urlRoot +
+        '/HuecosMed/cargardatos.hyg?str_sql=' +
+        encodeURIComponent(encode64(JSON.stringify(consulta)));
+      fetch(url, {
+        method: 'GET',
+      })
+        .then((e) => e.json())
+        .then((responseJson) => {
+          this.setState({filterData: responseJson[0].title.split(',')});
+          console.log(this.state.filterData);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }else{
+      this.setState({filterData: []});
+    }
+  };
+
+  searchCoordinates = (direccion) => {
+    console.log(direccion);
+    if (direccion.length > 0){
+      const consulta = {
+        SQL: 'SQL_HUECOS_CONSULTAR_DIRECCIONES',
+        N: 1,
+        DATOS: {P1: direccion},
+      };
+      let url =
+        urlRoot +
+        '/HuecosMed/cargardatos.hyg?str_sql=' +
+        encodeURIComponent(encode64(JSON.stringify(consulta)));
+      fetch(url, {
+        method: 'GET',
+      })
+        .then((e) => e.json())
+        .then((responseJson) => {
+          this.llenarUbicacion = (responseJson[0].LATITUD, responseJson[0].LONGITUD);
+          console.log(responseJson);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }else{
+      this.setState({filterData: []});
+    }
+  };
+
+
   render() {
     return (
       <View style={styles.Container}>
@@ -298,6 +357,27 @@ class getFormulario extends React.Component {
               </View>
               <View style={[styles.viewCampos, styles.viewCampospad]}>
                 <Text style={styles.Text}>{txtUbicacion}</Text>
+                <Autocomplete
+                  autoCapitalize="none"
+                  defaultValue={this.state.selectedItem}
+                  data={this.state.filterData}
+                  containerStyle={styles.AutocompleteStyle}
+                  keyExtractor={(item, i) => i.toString()}
+                  onChangeText={(text) => this.searchDirection(text)}
+                  placeholder="Type The Search Keyword..."
+                  renderItem={({item, i}) => (
+                    <TouchableOpacity
+                      onPress={() => {
+                        this.setState({selectedItem: item});
+                        this.setState({filterData: []});
+                        this.searchCoordinates(item);
+                      }}>
+                      <Text style={styles.SearchBoxTextItem}>
+                        {item}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                />
                 <Pressable
                   style={
                     this.state.data.location == undefined ||
@@ -414,6 +494,16 @@ class getFormulario extends React.Component {
 const styles = StyleSheet.create({
   Container: {
     flex: 1,
+  },
+  AutocompleteStyle: {
+    flex: 1,
+    left: 0,
+    position: 'absolute',
+    right: 0,
+    top: 0,
+    zIndex: 1,
+    borderWidth:1,
+    backgroundColor: '#e21818'
   },
   WebviewMapa: {
     height: height,
@@ -622,6 +712,11 @@ const styles = StyleSheet.create({
     width: 310,
     height: 47,
   },
+  SearchBoxTextItem: {
+    margin: 5,
+    fontSize: 16,
+    paddingTop: 4,
+  }
 });
 
 export default getFormulario;
