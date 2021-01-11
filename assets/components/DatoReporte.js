@@ -28,11 +28,6 @@ const txtPuntoDEscripcion =
   'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
 const urlRoot = 'https://www.medellin.gov.co';
 const encode64 = require('../libs/B64');
-const validate = (email) => {
-  const expression = /(?!.*\.{2})^([a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+(\.[a-z\d!#$%&'*+\-\/=?^_`{|}~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+)*|"((([\t]*\r\n)?[\t]+)?([\x01-\x08\x0b\x0c\x0e-\x1f\x7f\x21\x23-\x5b\x5d-\x7e\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|\\[\x01-\x09\x0b\x0c\x0d-\x7f\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]))*(([\t]*\r\n)?[\t]+)?")@(([a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\d\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.)+([a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]|[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF][a-z\d\-._~\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]*[a-z\u00A0-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF])\.?$/i;
-
-  return expression.test(String(email).toLowerCase());
-};
 
 class DatosReporte extends React.Component {
   state = {
@@ -55,11 +50,6 @@ class DatosReporte extends React.Component {
     this.onchangeInputs();
   }
 
-  onchangeInputs = (text, name) => {
-    this.setState({data: {...this.state.data, [name]: text}});
-    //console.log({...this.state.data});
-  };
-
   validarReporte = () => {
     if (
       this.state.data.email != undefined &&
@@ -67,15 +57,6 @@ class DatosReporte extends React.Component {
       this.state.data.location != undefined &&
       this.state.data.location != ''
     ) {
-      if (!validate(this.state.data.email)) {
-        Alert.alert(
-          'Correo invalido',
-          'El correo electrónico es incorrecto',
-          [{text: 'Aceptar'}],
-          {cancelable: false},
-        );
-        return;
-      }
       this.guardarDatos();
     } else {
       Alert.alert(
@@ -136,8 +117,8 @@ class DatosReporte extends React.Component {
     })
       .then((e) => e.json())
       .then((responseJson) => {
-        console.log(responseJson);
-        console.log(responseJson[0].ID);
+        // console.log(responseJson);
+        // console.log(responseJson[0].ID);
         Alert.alert(
           'Gracias por su reporte',
           'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
@@ -149,10 +130,14 @@ class DatosReporte extends React.Component {
         this.props.navigation.navigate('Formulario');
       });
   }
+  onchangeInputs = (text, name) => {
+    this.setState({data: {...this.state.data, [name]: text}});
+    this.onsubmit();
+  };
 
   onsubmit = () => {
     const data = {...this.state.data};
-    console.log(data);
+    //console.log(data.email);
   };
 
   renderFileData() {
@@ -171,11 +156,9 @@ class DatosReporte extends React.Component {
       <View style={styles.Container}>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.body}>
-          <ScrollView style={styles.scrollView}>
-            <View style={styles.contenedorHead}>
-              <View style={styles.headerDiv}>
-                <Text style={styles.texthead}>{'Datos del reporte'}</Text>
-              </View>
+          <ScrollView>
+            <View style={styles.headerDiv}>
+              <Text style={styles.texthead}>{'Reportar a HUECOSMED'}</Text>
             </View>
             <WebView
               ref={'Map_Ref'}
@@ -190,6 +173,7 @@ class DatosReporte extends React.Component {
                 <View style={styles.viewCampos}>
                   <Text style={styles.Text}>{txtUbicacion}</Text>
                   <TextInput
+                    editable={false}
                     style={styles.TextInput}
                     value={this.state.data.location}
                   />
@@ -207,7 +191,7 @@ class DatosReporte extends React.Component {
                   <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
                 </View>
                 <View style={styles.viewCampos}>
-                  <Text style={styles.TextIni}>Fotografía de evidencia</Text>
+                  <Text style={styles.Text}>Fotografía de evidencia</Text>
                   <View
                     style={
                       this.state.data.urlFoto == undefined ||
@@ -240,7 +224,9 @@ class DatosReporte extends React.Component {
                     onChangeText={(event) =>
                       this.onchangeInputs(event, 'email')
                     }
-                    onChange={(event) => this.onchangeInputs(event, 'email')}
+                    onSubmitEditing={(e) =>
+                      this.onchangeInputs(this.state.data.email, 'email')
+                    }
                   />
                   <Text style={styles.ayuda}>
                     {
@@ -340,16 +326,16 @@ class DatosReporte extends React.Component {
 
     this.setModalVisible(false);
     ImagePicker.launchCamera(options, (response) => {
-      //console.log('Response = ', response);
+      // //console.log('Response = ', response);
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        // console.log('User cancelled image picker');
       } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
+        // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
+        // console.log('User tapped custom button: ', response.customButton);
         alert(response.customButton);
       } else {
-        console.log('response', JSON.stringify(response));
+        // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
         this.setModalVisible(true);
@@ -366,17 +352,17 @@ class DatosReporte extends React.Component {
     };
     this.setModalVisible(false);
     ImagePicker.launchImageLibrary(options, (response) => {
-      //console.log('Response = ', response);
+      // //console.log('Response = ', response);
 
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        // console.log('User cancelled image picker');
       } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
+        // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
+        // console.log('User tapped custom button: ', response.customButton);
         alert(response.customButton);
       } else {
-        console.log('response', JSON.stringify(response));
+        // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
         this.setModalVisible(true);
@@ -386,9 +372,6 @@ class DatosReporte extends React.Component {
 }
 
 const styles = StyleSheet.create({
-  fondo: {
-    backgroundColor: 'red',
-  },
   centeredView: {
     flex: 1,
     justifyContent: 'center',
@@ -461,14 +444,17 @@ const styles = StyleSheet.create({
   //fin modal.
   Container: {
     flex: 1,
+    backgroundColor: '#fff',
   },
   WebviewMapa: {
     flex: 1,
-    height: height / 3 - 65,
+    height: height / 3,
+    position: 'relative',
     width: width,
     margin: 0,
     padding: 0,
     backgroundColor: 'gray',
+    zIndex: 1,
   },
   btnOculto: {
     display: 'none',
@@ -479,13 +465,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   captures: {
-    marginLeft: 10,
+    marginRight: 10,
     height: 80,
     width: 90,
   },
   TextInput: {
     width: 'auto',
-    height: 45,
+    height: 40,
     borderRadius: 18,
     borderColor: '#B7B7B7',
     borderWidth: 1,
@@ -513,33 +499,38 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     height: 'auto',
   },
-  scrollView: {
-    textAlign: 'center',
-  },
   body: {
     fontFamily: 'MavenPro_500Medium',
+    textAlign: 'center',
+    backgroundColor: '#fff',
   },
   contenedorHead: {
-    backgroundColor: '#ffffffd6',
+    backgroundColor: 'transparent',
     paddingLeft: 0,
     paddingRight: 0,
+    position: 'absolute',
   },
   headerDiv: {
     backgroundColor: '#03AED8',
-    height: 80,
+    width: width,
+    height: 60,
     borderBottomRightRadius: 30,
     borderBottomLeftRadius: 30,
+    paddingLeft: 0,
+    paddingRight: 0,
+    position: 'absolute',
+    zIndex: 3,
   },
   texthead: {
     color: '#fff',
     fontWeight: 'bold',
     textAlign: 'center',
     position: 'absolute',
-    fontFamily: 'Maven Pro',
+    fontFamily: 'MavenPro-Medium',
     fontSize: 20,
     left: 20,
     right: 20,
-    bottom: 20,
+    bottom: 10,
   },
   viewFooter: {
     alignItems: 'center',

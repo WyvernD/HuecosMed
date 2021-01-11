@@ -68,7 +68,7 @@ class getFormulario extends React.Component {
           //To Check, If Permission is granted
         }
       } catch (err) {
-        console.log(err);
+        // console.log(err);
       }
     }
   }
@@ -118,15 +118,14 @@ class getFormulario extends React.Component {
         );
       })
       .catch((error) => {
-        console.error(error);
+        // console.error(error);
       });
   }
 
   onsubmit = () => {
     const data = {...this.state.data};
-    //console.log(data);
+    // //console.log(data);
   };
-  getDirecciones(text) {}
 
   onchangeInputs = (text, name) => {
     this.setState({data: {...this.state.data, [name]: text}});
@@ -142,17 +141,17 @@ class getFormulario extends React.Component {
       },
     };
     ImagePicker.launchCamera(options, (response) => {
-      console.log('Response = ', response);
+      // console.log('Response = ', response);
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        // console.log('User cancelled image picker');
       } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
+        // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
+        // console.log('User tapped custom button: ', response.customButton);
         alert(response.customButton);
       } else {
-        const source = {uri: response.uri};
-        console.log('response', JSON.stringify(response));
+        //const source = {uri: response.uri};
+        // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
       }
@@ -168,18 +167,18 @@ class getFormulario extends React.Component {
       },
     };
     ImagePicker.launchImageLibrary(options, (response) => {
-      console.log('Response = ', response);
+      // console.log('Response = ', response);
 
       if (response.didCancel) {
-        console.log('User cancelled image picker');
+        // console.log('User cancelled image picker');
       } else if (response.error) {
-        console.log('ImagePicker Error: ', response.error);
+        // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
-        console.log('User tapped custom button: ', response.customButton);
+        // console.log('User tapped custom button: ', response.customButton);
         alert(response.customButton);
       } else {
-        const source = {uri: response.uri};
-        console.log('response', JSON.stringify(response));
+        //const source = {uri: response.uri};
+        // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
       }
@@ -188,10 +187,7 @@ class getFormulario extends React.Component {
 
   validarReporte = () => {
     const datos = {...this.state.data};
-    const datosMapa = this.refs.Map_Ref.injectJavaScript('mymap.getCenter()');
-    console.log(datosMapa);
-    if (datos.location != undefined) {
-      //this.llenarUbicacion(currentLatitude, currentLongitude);
+    if (datos.location !== undefined) {
       this.props.navigation.navigate('Reporte', {
         datos: JSON.stringify(this.state),
       });
@@ -199,7 +195,7 @@ class getFormulario extends React.Component {
       Alert.alert(
         'Campo obligatorio',
         'El campo ubicación es obligatorio.',
-        [{text: 'Aceptar', onPress: () => console.log('Aceptar Pressed')}],
+        [{text: 'Aceptar'}],
         {cancelable: false},
       );
     }
@@ -208,44 +204,17 @@ class getFormulario extends React.Component {
   coordinatesFromMap = (data) => {
     let datos = JSON.parse(data);
     this.llenarUbicacion(datos.lat, datos.lng);
-    console.log(datos);
-  }
+    // console.log(datos);
+  };
 
   limpiar = () => {
+    this.searchCoordinates('');
+    this.setState({selectedItem: ''});
+    this.setState({filterData: []});
+    this.searchCoordinates('');
     this.setState({
       data: {...this.state.data, ['location']: ''},
     });
-  };
-
-  ubicarDireccion = () => {
-    let url =
-      this.state.consulta.buscarDir + encode64(this.state.data.location);
-    fetch(url, {
-      method: 'GET',
-    })
-      .then((response) => response.json())
-      .then((responseJson) => {
-        console.log(responseJson);
-        if (responseJson.Y == undefined || responseJson.X == undefined) {
-          /*Alert.alert(
-            'No se encontro la ubicación',
-            'Por favor verifique la dirección.',
-            [{text: 'Aceptar'}],
-            {cancelable: false},
-          );*/
-        } else {
-          const currentLatitude = responseJson.Y[0];
-          const currentLongitude = responseJson.X[0];
-          if (currentLatitude != 0 && currentLongitude != 0) {
-            this.refs.Map_Ref.injectJavaScript(
-              ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
-            );
-          }
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-      });
   };
 
   getCapas = () => {};
@@ -275,12 +244,12 @@ class getFormulario extends React.Component {
       data: {...this.state.data, ['longitude']: currentLongitude},
     });
     this.setState({
-      data: {...this.state.data, ['zoom']: 17},
+      data: {...this.state.data, ['zoom']: 19},
     });
   };
 
   searchDirection = (direccion) => {
-    if (direccion.length > 0){
+    if (direccion.length > 0) {
       const consulta = {
         SQL: 'SQL_HUECOS_CONSULTAR_DIRECCIONES_LISSTAG',
         N: 1,
@@ -298,15 +267,15 @@ class getFormulario extends React.Component {
           this.setState({filterData: responseJson[0].title.split(',')});
         })
         .catch((error) => {
-          console.error(error);
+          // console.error(error);
         });
-    }else{
+    } else {
       this.setState({filterData: []});
     }
   };
 
   searchCoordinates = (direccion) => {
-    if (direccion.length > 0){
+    if (direccion.length > 0) {
       const consulta = {
         SQL: 'SQL_HUECOS_CONSULTAR_DIRECCIONES',
         N: 1,
@@ -321,27 +290,28 @@ class getFormulario extends React.Component {
       })
         .then((e) => e.json())
         .then((responseJson) => {
-          let latitud = responseJson[0].LATITUD;
-          let longitud = responseJson[0].LONGITUD;
-          this.refs.Map_Ref.injectJavaScript(
-            ` mymap.flyTo([${latitud}, ${longitud}], 18)`,
-          );
+          if (responseJson) {
+            let latitud = responseJson[0].LATITUD;
+            let longitud = responseJson[0].LONGITUD;
+            this.refs.Map_Ref.injectJavaScript(
+              ` mymap.flyTo([${latitud}, ${longitud}], 18)`,
+            );
+          }
         })
         .catch((error) => {
-          console.error(error);
+          // console.error(error);
         });
-    }else{
+    } else {
       this.setState({filterData: []});
     }
   };
-
 
   render() {
     return (
       <View style={styles.Container}>
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.body}>
-          <ScrollView style={styles.scrollView}>
+          <ScrollView>
             <WebView
               ref={'Map_Ref'}
               onMessage={(event) => {
@@ -352,72 +322,69 @@ class getFormulario extends React.Component {
               }}
               style={styles.WebviewMapa}
             />
-            <View style={[styles.contenedor, styles.contenedorTop]}>
-              <View
-                style={[styles.headerDiv, {paddingLeft: 0, paddingRight: 0}]}>
+            <View style={[styles.contenedor, {top: 0}]}>
+              <View style={styles.headerDiv}>
                 <Text style={styles.texthead}>{'Reportar a HUECOSMED'}</Text>
               </View>
               <View style={[styles.viewCampos, styles.viewCampospad]}>
                 <Text style={styles.Text}>{txtUbicacion}</Text>
-                <Autocomplete
-                  autoCapitalize="none"
-                  defaultValue={this.state.selectedItem}
-                  data={this.state.filterData}
-                  containerStyle={styles.AutocompleteStyle}
-                  keyExtractor={(item, i) => i.toString()}
-                  onChangeText={(text) => this.searchDirection(text)}
-                  placeholder="Type The Search Keyword..."
-                  renderItem={({item, i}) => (
-                    <TouchableOpacity
-                      onPress={() => {
-                        this.setState({selectedItem: item});
-                        this.setState({filterData: []});
-                        this.searchCoordinates(item);
-                      }}>
-                      <Text style={styles.SearchBoxTextItem}>
-                        {item}
-                      </Text>
-                    </TouchableOpacity>
-                  )}
-                />
-                <Pressable
-                  style={
-                    this.state.data.location == undefined ||
-                    this.state.data.location == ''
-                      ? styles.btnOculto
-                      : styles.btnUbic
-                  }
-                  onPress={this.ubicarDireccion}>
-                  <Image
-                    style={styles.iconoText}
-                    source={require('../iconos/ubicacion.png')}
+                <View style={{height: 40}}>
+                  <Pressable
+                    style={
+                      this.state.data.location == undefined ||
+                      this.state.data.location == ''
+                        ? styles.btnOculto
+                        : styles.btnUbic
+                    }>
+                    <Image
+                      style={styles.iconoText}
+                      source={require('../iconos/ubicacion.png')}
+                    />
+                  </Pressable>
+                  <Autocomplete
+                    autoCapitalize="none"
+                    defaultValue={this.state.selectedItem}
+                    data={this.state.filterData}
+                    containerStyle={styles.containerStyle}
+                    inputContainerStyle={styles.inputContainerStyle}
+                    listContainerStyle={styles.listContainerStyle}
+                    listStyle={styles.listStyle}
+                    hideResults={false}
+                    keyExtractor={(item, i) => i.toString()}
+                    onChangeText={(text) => this.searchDirection(text)}
+                    renderItem={({item, i}) => (
+                      <Pressable
+                        style={styles.SearchBoxTouch}
+                        onPress={() => {
+                          this.setState({selectedItem: item});
+                          this.setState({filterData: []});
+                          this.searchCoordinates(item);
+                          this.setState({
+                            data: {...this.state.data, ['location']: item},
+                          });
+                        }}>
+                        <Text style={styles.SearchBoxTextItem}>{item}</Text>
+                      </Pressable>
+                    )}
                   />
-                </Pressable>
-                <TextInput
-                  style={[styles.TextInput, styles.TextUbic]}
-                  value={this.state.data.location}
-                  onChangeText={(event) => [
-                    this.onchangeInputs(event, 'location'),
-                    this.ubicarDireccion(event),
-                  ]}
-                />
-                <Pressable
-                  style={
-                    this.state.data.location == undefined ||
-                    this.state.data.location == ''
-                      ? styles.btnOculto
-                      : styles.btnLimpiar
-                  }
-                  onPress={this.limpiar}>
-                  <Image
-                    style={styles.iconoText}
-                    source={require('../iconos/ElipseX.png')}
-                  />
-                  <Image
-                    style={[styles.iconoText, styles.iconoX]}
-                    source={require('../iconos/X2x.png')}
-                  />
-                </Pressable>
+                  <Pressable
+                    style={
+                      this.state.data.location == undefined ||
+                      this.state.data.location == ''
+                        ? styles.btnOculto
+                        : styles.btnLimpiar
+                    }
+                    onPress={this.limpiar}>
+                    <Image
+                      style={styles.iconoText}
+                      source={require('../iconos/ElipseX.png')}
+                    />
+                    <Image
+                      style={[styles.iconoText, styles.iconoX]}
+                      source={require('../iconos/X2x.png')}
+                    />
+                  </Pressable>
+                </View>
                 <Text style={styles.ayuda}>{txtUbicDecripcion}</Text>
               </View>
               <View style={[styles.viewCampos, styles.viewCampospad]}>
@@ -440,7 +407,7 @@ class getFormulario extends React.Component {
               />
             </Pressable>
             <Pressable
-              style={[styles.btnCapas, {top: '45%'}]}
+              style={[styles.btnCapas, {top: '36%'}]}
               onPress={this.getUbicacion}>
               <Image
                 style={styles.iconoCapa}
@@ -497,23 +464,52 @@ const styles = StyleSheet.create({
   Container: {
     flex: 1,
   },
-  AutocompleteStyle: {
-    flex: 1,
-    left: 0,
+  containerStyle: {
     position: 'absolute',
-    right: 0,
-    top: 0,
-    zIndex: 1,
-    borderWidth:1,
-    backgroundColor: '#e21818'
+    backgroundColor: '#fff',
+    width: '100%',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#B7B7B7',
+    zIndex: 9,
+  },
+  inputContainerStyle: {
+    paddingLeft: 30,
+    paddingRight: 30,
+    borderWidth: 0,
+    borderRadius: 18,
+    zIndex: 4,
+    color: Colors.black,
+    fontSize: 12,
+  },
+  listContainerStyle: {
+    backgroundColor: 'transparent',
+    width: '100%',
+  },
+  listStyle: {
+    borderWidth: 0,
+  },
+  SearchBoxTouch: {
+    margin: 5,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#B7B7B7',
+    borderRadius: 18,
+    paddingTop: 4,
+    zIndex: 10,
+  },
+  SearchBoxTextItem: {
+    margin: 3,
+    fontSize: 16,
+    paddingLeft: 10,
+    zIndex: 7,
   },
   WebviewMapa: {
     height: height,
     width: width,
     margin: 0,
     padding: 0,
-    position: 'relative',
-    zIndex: 1,
+    zIndex: 0,
     backgroundColor: 'gray',
   },
   btnOculto: {
@@ -522,18 +518,19 @@ const styles = StyleSheet.create({
   btnLimpiar: {
     position: 'absolute',
     top: '25%',
-    right: '5%',
+    right: 0,
     width: 40,
     height: 40,
+    zIndex: 10,
   },
   btnUbic: {
     position: 'absolute',
     alignItems: 'center',
     top: '25%',
-    left: '10%',
+    left: 0,
     width: 40,
     height: 40,
-    zIndex: 5,
+    zIndex: 10,
   },
   iconoX: {
     position: 'absolute',
@@ -551,21 +548,20 @@ const styles = StyleSheet.create({
   },
   btnCapas: {
     position: 'absolute',
-    width: 40,
-    height: 40,
+    width: 42,
+    height: 42,
     right: 25,
-    top: '38%',
+    top: '30%',
     borderRadius: 50,
     alignItems: 'center',
   },
   iconoCapa: {
-    position: 'relative',
     height: '100%',
     width: '100%',
   },
   TextInput: {
     width: 'auto',
-    height: 45,
+    height: 40,
     borderRadius: 18,
     borderColor: '#B7B7B7',
     borderWidth: 1,
@@ -574,33 +570,32 @@ const styles = StyleSheet.create({
   Text: {
     color: Colors.black,
     fontSize: 12,
-    position: 'relative',
     fontWeight: 'bold',
-    fontFamily: 'MavenPro_500Medium',
+    fontFamily: 'MavenPro-Medium',
     textAlign: 'left',
     left: 0,
     margin: 0,
     paddingLeft: 5,
     padding: 0,
+    zIndex: 1,
   },
   ayuda: {
     color: '#9A9393',
     fontSize: 10,
+    zIndex: 1,
     textAlign: 'left',
   },
   viewCampos: {
     flexDirection: 'column',
     padding: 0,
-    height: 100,
-  },
-  scrollView: {
-    textAlign: 'center',
+    marginBottom: 15,
   },
   contenedor: {
     backgroundColor: '#fff',
     opacity: 0.9,
     width: width,
     position: 'absolute',
+    zIndex: 2,
   },
   viewCampospad: {
     paddingLeft: 30,
@@ -608,20 +603,11 @@ const styles = StyleSheet.create({
   },
   body: {
     fontFamily: 'MavenPro-Medium',
-  },
-  contenedorTop: {
-    top: 0,
-  },
-  contenedorHead: {
-    paddingLeft: 0,
-    paddingRight: 0,
-    backgroundColor: '#fff',
-    width: width,
-    position: 'absolute',
+    textAlign: 'center',
   },
   headerDiv: {
     backgroundColor: '#03AED8',
-    height: 80,
+    height: 60,
     borderBottomRightRadius: 30,
     borderBottomLeftRadius: 30,
     paddingLeft: 0,
@@ -636,7 +622,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     left: 20,
     right: 20,
-    bottom: 20,
+    bottom: 10,
   },
   image: {
     flex: 1,
@@ -708,17 +694,11 @@ const styles = StyleSheet.create({
   buttonReportar: {
     position: 'absolute',
     bottom: 20,
-    zIndex: 3,
   },
   buttonOk: {
     width: 310,
     height: 47,
   },
-  SearchBoxTextItem: {
-    margin: 5,
-    fontSize: 16,
-    paddingTop: 4,
-  }
 });
 
 export default getFormulario;

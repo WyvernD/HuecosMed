@@ -118,7 +118,7 @@ class SliderScreen extends React.Component {
           source={require('../iconos/splash/arbolito.png')}
           style={styles.iconFooter}
         />
-        <Text style={styles.version}>V3.6</Text>
+        <Text style={styles.version}>V3.7</Text>
       </View>
     );
   }

@@ -12,49 +12,51 @@ const html_script = `
 <body style="padding: 0; margin: 0">
 <div id="mapid" style="width: 100%; height: 100vh;"></div>
 <script>
-	var mymap = L.map('mapid').setView([6.2447305,-75.5760133],15);
-	
-	var myIcon = L.icon({
-        iconUrl: 'https://www.medellin.gov.co/siro/HuecosMed_web/img/iconos/004-pin.png',
-        iconAnchor: [22, 42], // point of the icon which will correspond to marker's location 
-    });
-  
-	L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-		maxZoom: 18,
-		attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
-			'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-		id: 'mapbox/streets-v11',
-		tileSize: 512,
-		zoomOffset: -1
-	}).addTo(mymap);
-	
-	var marker = L.marker(mymap.getCenter(), {icon: myIcon}).addTo(mymap);
-	var radius = L.circle(mymap.getCenter(), {
-          color: "#58D2FF",
-          fillColor: "#58D2FF",
-          radius: 10.0
-      }).addTo(mymap);
+var mymap = L.map('mapid').setView([6.2447305, -75.5760133], 15);
 
-	var popup = L.popup();
+var myIcon = L.icon({
+    iconUrl: 'https://www.medellin.gov.co/siro/HuecosMed_web/img/iconos/004-pin.png',
+    iconAnchor: [22, 42], // point of the icon which will correspond to marker's location 
+});
 
-	// function onMapClick(e) {
-	//   L.marker(e.latlng).addTo(mymap);
-	// 	popup
-	// 		.setLatLng(e.latlng)
-	// 		.setContent("You clicked the map at " + e.latlng.toString())
-	// 		.openOn(mymap);
-	// }
+L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
+    maxZoom: 20,
+    attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+        'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+    id: 'mapbox/streets-v11',
+    tileSize: 512,
+    zoomOffset: -1
+}).addTo(mymap);
 
-	// mymap.on('click', onMapClick);
-	
-	mymap.on('move', function () {
-	  marker.setLatLng(mymap.getCenter());
-	  radius.setLatLng(mymap.getCenter());
-	});
-	
-  mymap.on('moveend', function () {
-	  window.ReactNativeWebView.postMessage(JSON.stringify(mymap.getCenter()));
-	});
+var marker = L.marker(mymap.getCenter(), {
+    icon: myIcon
+}).addTo(mymap);
+var radius = L.circle(mymap.getCenter(), {
+    color: "#58D2FF",
+    fillColor: "#58D2FF",
+    radius: 10.0
+}).addTo(mymap);
+
+var popup = L.popup();
+
+// function onMapClick(e) {
+//   L.marker(e.latlng).addTo(mymap);
+// popup
+//  .setLatLng(e.latlng)
+//  .setContent("You clicked the map at " + e.latlng.toString())
+//  .openOn(mymap);
+// }
+
+// mymap.on('click', onMapClick);
+
+mymap.on('move', function() {
+    marker.setLatLng(mymap.getCenter());
+    radius.setLatLng(mymap.getCenter());
+});
+
+mymap.on('moveend', function() {
+    window.ReactNativeWebView.postMessage(JSON.stringify(mymap.getCenter()));
+});
 
 </script>
 </body>
