@@ -55,17 +55,9 @@ const html_script =
 	  radius.setLatLng(mymap.getCenter());
 	});
 	
-	function onLocationFound(e) {
-    marker.setLatLng(mymap.getCenter());      
-  }
-	
-  function onLocationError(e) {
-    alert(e.message);
-  }
-
-  mymap.on('locationfound', onLocationFound);
-  mymap.on('locationerror', onLocationError);
-
+  mymap.on('moveend', function () {
+	  window.ReactNativeWebView.postMessage(JSON.stringify(mymap.getCenter()));
+	});
 
 </script>
 </body>

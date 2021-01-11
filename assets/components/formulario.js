@@ -42,7 +42,6 @@ class getFormulario extends React.Component {
     filterData: [],
     selectedItem: {},
   };
-
   async componentDidMount() {
     this.cargarDatos();
     this.requestCameraPermission();
@@ -207,6 +206,12 @@ class getFormulario extends React.Component {
     }
   };
 
+  coordinatesFromMap = (data) => {
+    let datos = JSON.parse(data);
+    this.llenarUbicacion(datos.lat, datos.lng);
+    console.log(datos);
+  }
+
   limpiar = () => {
     this.setState({
       data: {...this.state.data, ['location']: ''},
@@ -343,7 +348,7 @@ class getFormulario extends React.Component {
             <WebView
               ref={'Map_Ref'}
               onMessage={(event) => {
-                this.onMessage(event);
+                this.coordinatesFromMap(event.nativeEvent.data);
               }}
               source={{
                 html: WebHtml,
