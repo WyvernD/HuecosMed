@@ -53,7 +53,6 @@ class getFormulario extends React.Component {
           const currentLatitude = JSON.stringify(position.coords.latitude);
           this.refs.Map_Ref.injectJavaScript(`
           mymap.setView([${currentLatitude}, ${currentLongitude}], 18)`);
-          this.llenarUbicacion(currentLatitude, currentLongitude);
         },
         (error) => {
           alert(error.message);
@@ -241,7 +240,6 @@ class getFormulario extends React.Component {
             this.refs.Map_Ref.injectJavaScript(
               ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
             );
-            this.llenarUbicacion(currentLatitude, currentLongitude);
           }
         }
       })
@@ -261,7 +259,6 @@ class getFormulario extends React.Component {
         this.refs.Map_Ref.injectJavaScript(
           ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
         );
-        this.llenarUbicacion(currentLatitude, currentLongitude);
       },
       (error) => {
         alert(error.message);
@@ -283,7 +280,6 @@ class getFormulario extends React.Component {
   };
 
   searchDirection = (direccion) => {
-    console.log(direccion);
     if (direccion.length > 0){
       const consulta = {
         SQL: 'SQL_HUECOS_CONSULTAR_DIRECCIONES_LISSTAG',
@@ -300,7 +296,6 @@ class getFormulario extends React.Component {
         .then((e) => e.json())
         .then((responseJson) => {
           this.setState({filterData: responseJson[0].title.split(',')});
-          console.log(this.state.filterData);
         })
         .catch((error) => {
           console.error(error);
@@ -311,7 +306,6 @@ class getFormulario extends React.Component {
   };
 
   searchCoordinates = (direccion) => {
-    console.log(direccion);
     if (direccion.length > 0){
       const consulta = {
         SQL: 'SQL_HUECOS_CONSULTAR_DIRECCIONES',
@@ -327,8 +321,11 @@ class getFormulario extends React.Component {
       })
         .then((e) => e.json())
         .then((responseJson) => {
-          this.llenarUbicacion = (responseJson[0].LATITUD, responseJson[0].LONGITUD);
-          console.log(responseJson);
+          let latitud = responseJson[0].LATITUD;
+          let longitud = responseJson[0].LONGITUD;
+          this.refs.Map_Ref.injectJavaScript(
+            ` mymap.flyTo([${latitud}, ${longitud}], 18)`,
+          );
         })
         .catch((error) => {
           console.error(error);
