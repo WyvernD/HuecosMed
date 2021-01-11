@@ -1,7 +1,4 @@
-import React from 'react';
-
-const html_script =
-  `
+const html_script = `
 <!DOCTYPE html>
 <html>
 <head>
