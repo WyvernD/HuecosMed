@@ -18,7 +18,7 @@ class SliderScreen extends React.Component {
     this.props.navigation.navigate('Formulario');
   };
   state = {
-    slider: false,
+    slider: true,
   };
 
   async componentDidMount() {

@@ -62,6 +62,13 @@ class getFormulario extends React.Component {
       try {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+          {
+            title: 'HUECOSMED necesita tu ubicación',
+            message:
+              'Es necesario activar el GPS para poder ubicar adecuadamente el daño en el momento del reporte',
+            buttonNegative: 'No activar',
+            buttonPositive: 'Activar GPS',
+          },
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           //To Check, If Permission is granted
@@ -232,11 +239,23 @@ class getFormulario extends React.Component {
         );
       },
       (error) => {
-        alert(error.message);
+        if (error.PERMISSION_DENIED === 1) {
+          Alert.alert(
+            'HUECOSMED necesita tu ubicación.',
+            'Es necesario activar el GPS para poder ubicar adecuadamente el daño en el momento del reporte.',
+            [{text: 'Aceptar', onPress: () => this.ActivarGps()}],
+            {cancelable: false},
+          );
+        } else {
+          alert(error.message);
+        }
       },
       {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
     );
   };
+  async ActivarGps() {
+    console.log('Activar GPS');
+  }
 
   llenarUbicacion = (currentLatitude, currentLongitude) => {
     this.setState({
