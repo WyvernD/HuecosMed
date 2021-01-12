@@ -18,7 +18,7 @@ class SliderScreen extends React.Component {
     this.props.navigation.navigate('Formulario');
   };
   state = {
-    slider: true,
+    slider: false,
   };
 
   async componentDidMount() {
@@ -30,7 +30,7 @@ class SliderScreen extends React.Component {
           dato: JSON.stringify({...this.state.slider}),
         });
       }
-    }, 5000);
+    }, 6000);
   }
 
   async componentDidUpdate() {
@@ -41,14 +41,21 @@ class SliderScreen extends React.Component {
     }
   }
 
+  pressSlide(tipo) {
+
+  }
+
   renderSlider() {
     return (
       <Swiper
         autoplay={false}
         showsButtons={false}
-        showsPagination={true}
-        activeDot={false}
+        showsPagination={false}
+        ref="swiper"
+        effect="fade"
         preloadImages={false}
+        onIndexChanged={this.pressSlide('546')}
+        onSwiper={(swiper) => console.log(swiper)}
         loop={false}>
         <View style={styles.slide}>
           <Image
@@ -57,8 +64,9 @@ class SliderScreen extends React.Component {
           />
           <Image
             source={require('../iconos/grupo1/Grupo_1001.png')}
-            style={styles.iconFondo}
+            style={[styles.iconFondo, {height: 457}]}
           />
+
           <View style={styles.contenedor}>
             <Text style={styles.reportar}>{'REPORTA'}</Text>
             <Text style={styles.reportarDanos}>{'LOS DAÑOS EN LA VÍA'}</Text>
@@ -67,6 +75,16 @@ class SliderScreen extends React.Component {
                 'A través de HUECOSMED podrá reportar los baches o huecos que se se encuentran en vía pública'
               }
             </Text>
+            <Pressable
+              style={stylesSlide.btnSlide}
+              onPress={() => {
+                this.refs.swiper.scrollBy(1);
+              }}>
+              <Image
+                source={require('../iconos/splash/Componente12–2.png')}
+                style={stylesSlide.passed}
+              />
+            </Pressable>
             <Pressable style={styles.btn} onPress={this.saltarPress}>
               <Text style={styles.btnText}>SALTAR</Text>
             </Pressable>
@@ -79,8 +97,9 @@ class SliderScreen extends React.Component {
           />
           <Image
             source={require('../iconos/grupo2/Grupo_1002.png')}
-            style={styles.iconFondo}
+            style={[styles.iconFondo, {height: 448}]}
           />
+
           <View style={styles.contenedor}>
             <Text style={styles.reportar}>RECIBE</Text>
             <Text style={styles.reportarDanos}>NOTIFICACIONES</Text>
@@ -88,6 +107,16 @@ class SliderScreen extends React.Component {
               Estamos en contacto con el ciudadano para informar oportunamente
               sobre la solución a su reporte
             </Text>
+            <Pressable
+              style={stylesSlide.btnSlide}
+              onPress={() => {
+                this.refs.swiper.scrollBy(-1);
+              }}>
+              <Image
+                source={require('../iconos/splash/Componente12–3.png')}
+                style={stylesSlide.passed}
+              />
+            </Pressable>
             <Pressable style={styles.btn} onPress={this.saltarPress}>
               <Text style={styles.btnText}>SALTAR</Text>
             </Pressable>
@@ -118,7 +147,7 @@ class SliderScreen extends React.Component {
           source={require('../iconos/splash/arbolito.png')}
           style={styles.iconFooter}
         />
-        <Text style={styles.version}>V3.7</Text>
+        <Text style={styles.version}>V3.8</Text>
       </View>
     );
   }
@@ -132,6 +161,11 @@ class SliderScreen extends React.Component {
     );
   }
 }
+const stylesSlide = StyleSheet.create({
+  btnSlide: {
+    bottom: '27%',
+  },
+});
 
 const styles = StyleSheet.create({
   Container: {
@@ -176,16 +210,20 @@ const styles = StyleSheet.create({
   }, //Fin split
   iconFondo: {
     top: 20,
-    height: '50%',
-    marginLeft: '25%',
-    marginRight: '25%',
+    zIndex: 2,
     position: 'absolute',
-    zIndex: 4,
+  },
+  contentSlide: {
+    flex: 1,
+    width: '10%',
+    alignItems: 'center',
+    paddingRight: '45%',
+    paddingLeft: '45%',
   },
   contenedor: {
     position: 'absolute',
     alignItems: 'center',
-    fontFamily: 'Maven Pro',
+    fontFamily: 'MavenPro-Bold',
     textAlign: 'center',
     paddingRight: 65,
     paddingLeft: 65,
@@ -193,16 +231,17 @@ const styles = StyleSheet.create({
     zIndex: 5,
   },
   reportar: {
-    fontSize: 30,
+    fontSize: 22,
     bottom: 80,
     color: '#fff',
-    fontFamily: 'Maven Pro',
+    fontFamily: 'MavenPro-Bold',
     fontWeight: 'bold',
   },
   reportarDanos: {
     fontSize: 25,
     bottom: 80,
     color: '#fff',
+    fontWeight: 'bold',
   },
   reportarTxt: {
     fontSize: 14,

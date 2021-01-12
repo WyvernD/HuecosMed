@@ -12,18 +12,16 @@ import {
   TextInput,
   Pressable,
   View,
-  TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 
-import {Colors} from 'react-native/Libraries/NewAppScreen';
-import {WebView} from 'react-native-webview';
 import WebHtml from './MapComponent';
-import ImagePicker from 'react-native-image-picker';
-import Geolocation from '@react-native-community/geolocation';
-import {Dimensions} from 'react-native';
-import Autocomplete from 'react-native-autocomplete-input';
-
 const encode64 = require('../libs/B64');
+import {WebView} from 'react-native-webview';
+import ImagePicker from 'react-native-image-picker';
+import {Colors} from 'react-native/Libraries/NewAppScreen';
+import Autocomplete from 'react-native-autocomplete-input';
+import Geolocation from '@react-native-community/geolocation';
 
 const {width, height} = Dimensions.get('window');
 
@@ -42,6 +40,7 @@ class getFormulario extends React.Component {
     filterData: [],
     selectedItem: {},
   };
+
   async componentDidMount() {
     this.cargarDatos();
     this.requestCameraPermission();
@@ -72,6 +71,7 @@ class getFormulario extends React.Component {
       }
     }
   }
+
   async requestCameraPermission() {
     try {
       await PermissionsAndroid.requestMultiple([
@@ -97,6 +97,7 @@ class getFormulario extends React.Component {
       };
     }
   }
+
   async cargarDatos() {
     const consulta = {
       SQL: 'SQL_HUECOS_CONSULTAR_PARAMETROS_HUECO',
@@ -154,6 +155,7 @@ class getFormulario extends React.Component {
         // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
+        Alert.alert('Información', 'Imagen subida correctamente');
       }
     });
   };
@@ -181,13 +183,14 @@ class getFormulario extends React.Component {
         // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
+        Alert.alert('Información', 'Imagen subida correctamente');
       }
     });
   };
 
   validarReporte = () => {
     const datos = {...this.state.data};
-    if (datos.location !== undefined) {
+    if (datos.location !== undefined && datos.location !== '') {
       this.props.navigation.navigate('Reporte', {
         datos: JSON.stringify(this.state),
       });
@@ -203,12 +206,11 @@ class getFormulario extends React.Component {
 
   coordinatesFromMap = (data) => {
     let datos = JSON.parse(data);
+    console.log(datos);
     this.llenarUbicacion(datos.lat, datos.lng);
-    // console.log(datos);
   };
 
   limpiar = () => {
-    this.searchCoordinates('');
     this.setState({selectedItem: ''});
     this.setState({filterData: []});
     this.searchCoordinates('');
@@ -328,63 +330,7 @@ class getFormulario extends React.Component {
               </View>
               <View style={[styles.viewCampos, styles.viewCampospad]}>
                 <Text style={styles.Text}>{txtUbicacion}</Text>
-                <View style={{height: 40}}>
-                  <Pressable
-                    style={
-                      this.state.data.location == undefined ||
-                      this.state.data.location == ''
-                        ? styles.btnOculto
-                        : styles.btnUbic
-                    }>
-                    <Image
-                      style={styles.iconoText}
-                      source={require('../iconos/ubicacion.png')}
-                    />
-                  </Pressable>
-                  <Autocomplete
-                    autoCapitalize="none"
-                    defaultValue={this.state.selectedItem}
-                    data={this.state.filterData}
-                    containerStyle={styles.containerStyle}
-                    inputContainerStyle={styles.inputContainerStyle}
-                    listContainerStyle={styles.listContainerStyle}
-                    listStyle={styles.listStyle}
-                    hideResults={false}
-                    keyExtractor={(item, i) => i.toString()}
-                    onChangeText={(text) => this.searchDirection(text)}
-                    renderItem={({item, i}) => (
-                      <Pressable
-                        style={styles.SearchBoxTouch}
-                        onPress={() => {
-                          this.setState({selectedItem: item});
-                          this.setState({filterData: []});
-                          this.searchCoordinates(item);
-                          this.setState({
-                            data: {...this.state.data, ['location']: item},
-                          });
-                        }}>
-                        <Text style={styles.SearchBoxTextItem}>{item}</Text>
-                      </Pressable>
-                    )}
-                  />
-                  <Pressable
-                    style={
-                      this.state.data.location == undefined ||
-                      this.state.data.location == ''
-                        ? styles.btnOculto
-                        : styles.btnLimpiar
-                    }
-                    onPress={this.limpiar}>
-                    <Image
-                      style={styles.iconoText}
-                      source={require('../iconos/ElipseX.png')}
-                    />
-                    <Image
-                      style={[styles.iconoText, styles.iconoX]}
-                      source={require('../iconos/X2x.png')}
-                    />
-                  </Pressable>
-                </View>
+                {this.renderAutoComplete()}
                 <Text style={styles.ayuda}>{txtUbicDecripcion}</Text>
               </View>
               <View style={[styles.viewCampos, styles.viewCampospad]}>
@@ -392,7 +338,7 @@ class getFormulario extends React.Component {
                 <TextInput
                   style={styles.TextInput}
                   value={this.state.data.description}
-                  placeholder={'Ejemplo: Hueco cerca al consumo de la 80'}
+                  placeholder={this.state.consulta.placeHolder}
                   onChangeText={(event) =>
                     this.onchangeInputs(event, 'description')
                   }
@@ -400,15 +346,13 @@ class getFormulario extends React.Component {
                 <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
               </View>
             </View>
-            <Pressable style={styles.btnCapas} onPress={this.getCapas}>
+            <Pressable style={{display: 'none'}} onPress={this.getCapas}>
               <Image
                 style={styles.iconoCapa}
                 source={require('../iconos/grupo3/capax2.png')}
               />
             </Pressable>
-            <Pressable
-              style={[styles.btnCapas, {top: '36%'}]}
-              onPress={this.getUbicacion}>
+            <Pressable style={styles.btnCapas} onPress={this.getUbicacion}>
               <Image
                 style={styles.iconoCapa}
                 source={require('../iconos/grupo3/ubicarx2.png')}
@@ -458,6 +402,74 @@ class getFormulario extends React.Component {
       </View>
     );
   }
+
+  renderAutoComplete() {
+    return (
+      <View style={{height: 40}}>
+        <Pressable
+          style={
+            this.state.data.location == undefined ||
+            this.state.data.location == ''
+              ? styles.btnOculto
+              : styles.btnUbic
+          }>
+          <Image
+            style={styles.iconoText}
+            source={require('../iconos/ubicacion.png')}
+          />
+        </Pressable>
+        <Autocomplete
+          autoCapitalize="none"
+          defaultValue={this.state.selectedItem}
+          data={this.state.filterData}
+          containerStyle={styles.containerStyle}
+          inputContainerStyle={styles.inputContainerStyle}
+          listContainerStyle={styles.listContainerStyle}
+          listStyle={styles.listStyle}
+          hideResults={false}
+          keyExtractor={(item, i) => i.toString()}
+          onChangeText={(text) => this.searchDirection(text)}
+          renderItem={({item, i}) => (
+            <Pressable
+              style={styles.SearchBoxTouch}
+              onPress={() => {
+                this.setState({selectedItem: item});
+                this.setState({filterData: []});
+                this.searchCoordinates(item);
+                this.setState({
+                  data: {...this.state.data, ['location']: item},
+                });
+              }}>
+              <Pressable style={styles.imgDir}>
+                <Image
+                  style={styles.iconoText}
+                  source={require('../iconos/ubicacion.png')}
+                />
+              </Pressable>
+              <Text style={styles.SearchBoxTextItem}>{item}</Text>
+            </Pressable>
+          )}
+        />
+        <Pressable
+          style={
+            this.state.data.location == undefined ||
+            this.state.data.location == ''
+              ? styles.btnOculto
+              : styles.btnLimpiar
+          }
+          onPress={this.limpiar}>
+          <Image
+            style={styles.iconoText}
+            source={require('../iconos/ElipseX.png')}
+          />
+          <Image
+            style={[styles.iconoText, styles.iconoX]}
+            source={require('../iconos/X2x.png')}
+          />
+        </Pressable>
+      </View>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
@@ -471,38 +483,55 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#B7B7B7',
+    fontSize: 12,
     zIndex: 9,
   },
   inputContainerStyle: {
     paddingLeft: 30,
     paddingRight: 30,
+    fontSize: 12,
     borderWidth: 0,
     borderRadius: 18,
     zIndex: 4,
     color: Colors.black,
-    fontSize: 12,
   },
   listContainerStyle: {
     backgroundColor: 'transparent',
     width: '100%',
+    zIndex: 9,
   },
   listStyle: {
     borderWidth: 0,
+    zIndex: 9,
   },
   SearchBoxTouch: {
     margin: 5,
-    fontSize: 16,
+    fontSize: 15,
     borderWidth: 1,
     borderColor: '#B7B7B7',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderRadius: 18,
-    paddingTop: 4,
+    paddingTop: 2,
     zIndex: 10,
   },
   SearchBoxTextItem: {
     margin: 3,
-    fontSize: 16,
-    paddingLeft: 10,
-    zIndex: 7,
+    fontSize: 12,
+    marginLeft: 20,
+    right: 2,
+    width: '90%',
+    zIndex: 9,
+  },
+  imgDir: {
+    left: 0,
+    width: 27,
+    height: 25,
+    zIndex: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'absolute',
   },
   WebviewMapa: {
     height: height,
@@ -517,8 +546,9 @@ const styles = StyleSheet.create({
   },
   btnLimpiar: {
     position: 'absolute',
-    top: '25%',
-    right: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    right: -5,
     width: 40,
     height: 40,
     zIndex: 10,
@@ -526,18 +556,18 @@ const styles = StyleSheet.create({
   btnUbic: {
     position: 'absolute',
     alignItems: 'center',
-    top: '25%',
+    justifyContent: 'center',
     left: 0,
-    width: 40,
-    height: 40,
+    width: 35,
+    height: 35,
     zIndex: 10,
   },
   iconoX: {
     position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
     height: '25%',
     width: '25%',
-    left: 7,
-    top: 7,
   },
   TextUbic: {
     paddingLeft: 35,
@@ -548,12 +578,14 @@ const styles = StyleSheet.create({
   },
   btnCapas: {
     position: 'absolute',
-    width: 42,
-    height: 42,
-    right: 25,
-    top: '30%',
-    borderRadius: 50,
     alignItems: 'center',
+    justifyContent: 'center',
+    width: 40,
+    height: 40,
+    zIndex: 1,
+    right: '5%',
+    top: height / 3,
+    borderRadius: 50,
   },
   iconoCapa: {
     height: '100%',
@@ -576,14 +608,19 @@ const styles = StyleSheet.create({
     left: 0,
     margin: 0,
     paddingLeft: 5,
+    paddingTop: 3,
+    paddingBottom: 5,
     padding: 0,
     zIndex: 1,
   },
   ayuda: {
     color: '#9A9393',
-    fontSize: 10,
-    zIndex: 1,
     textAlign: 'left',
+    paddingBottom: 1,
+    paddingTop: 4,
+    fontSize: 9,
+    width: '100%',
+    zIndex: 1,
   },
   viewCampos: {
     flexDirection: 'column',
@@ -637,13 +674,13 @@ const styles = StyleSheet.create({
     height: 180,
     backgroundColor: '#ffffff',
     alignItems: 'center',
-    opacity: 0.7,
+    opacity: 0.9,
     zIndex: 1,
   },
   TextFooter: {
     color: '#575a5d',
     marginTop: 5,
-    fontSize: 18,
+    fontSize: 15,
     position: 'absolute',
   },
   viewCamposFotos: {
@@ -673,7 +710,7 @@ const styles = StyleSheet.create({
     marginRight: '5%',
   },
   btn: {
-    height: 40,
+    height: 35,
     zIndex: 2,
   },
   icono: {
@@ -684,20 +721,23 @@ const styles = StyleSheet.create({
     height: '63%',
     position: 'relative',
     alignItems: 'center',
+    zIndex: 3,
   },
   Txtfoto: {
     color: '#575a5d',
-    fontSize: 12,
+    fontSize: 10,
     textAlign: 'center',
     marginBottom: 5,
   },
   buttonReportar: {
     position: 'absolute',
     bottom: 20,
+    zIndex: 3,
   },
   buttonOk: {
     width: 310,
     height: 47,
+    zIndex: 3,
   },
 });
 

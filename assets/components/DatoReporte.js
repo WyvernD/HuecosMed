@@ -11,21 +11,17 @@ import {
   Pressable,
   Modal,
   View,
+  Dimensions,
 } from 'react-native';
 import {WebView} from 'react-native-webview';
-import {Dimensions} from 'react-native';
-const {width, height} = Dimensions.get('window');
 import WebHtml from './MapComponent';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 import ImagePicker from 'react-native-image-picker';
 
-const txtUbicacion = 'Ubicación actual del daño en la via';
+const {width, height} = Dimensions.get('window');
 
-const txtUbicDecripcion =
-  'Puede digitar la dirección donde se encuentra el daño o ubicar el PIN en el mapa';
+const txtUbicacion = 'Ubicación actual del daño en la via';
 const txtPunto = 'Digite un punto de referencia de la dirección';
-const txtPuntoDEscripcion =
-  'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
 const urlRoot = 'https://www.medellin.gov.co';
 const encode64 = require('../libs/B64');
 
@@ -44,10 +40,12 @@ class DatosReporte extends React.Component {
   async componentDidMount() {
     this.state.data = JSON.parse(this.props.route.params.datos).data;
     this.state.consulta = JSON.parse(this.props.route.params.datos).consulta;
-    this.refs.Map_Ref.injectJavaScript(
-      ` mymap.flyTo([${this.state.data.latitude}, ${this.state.data.longitude}], ${this.state.data.zoom})`,
-    );
     this.onchangeInputs();
+    setTimeout(() => {
+      this.refs.Map_Ref.injectJavaScript(
+        ` mymap.flyTo([${this.state.data.latitude}, ${this.state.data.longitude}], ${this.state.data.zoom})`,
+      );
+    }, 200);
   }
 
   validarReporte = () => {
@@ -120,9 +118,10 @@ class DatosReporte extends React.Component {
         // console.log(responseJson);
         // console.log(responseJson[0].ID);
         Alert.alert(
-          'Gracias por su reporte',
-          'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
-            'Recuerde su número de reporte : ' +
+          'Su reporte se ha realizado',
+          'Gracias por su reporte  \n  \n' +
+            'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
+            'Recuerde su número de reporte  ' +
             responseJson[0].ID,
           [{text: 'Aceptar'}],
           {cancelable: false},
@@ -158,7 +157,7 @@ class DatosReporte extends React.Component {
         <SafeAreaView style={styles.body}>
           <ScrollView>
             <View style={styles.headerDiv}>
-              <Text style={styles.texthead}>{'Reportar a HUECOSMED'}</Text>
+              <Text style={styles.texthead}>{'Datos del reporte'}</Text>
             </View>
             <WebView
               ref={'Map_Ref'}
@@ -177,7 +176,6 @@ class DatosReporte extends React.Component {
                     style={styles.TextInput}
                     value={this.state.data.location}
                   />
-                  <Text style={styles.ayuda}>{txtUbicDecripcion}</Text>
                 </View>
                 <View style={styles.viewCampos}>
                   <Text style={styles.Text}>{txtPunto}</Text>
@@ -188,7 +186,6 @@ class DatosReporte extends React.Component {
                       this.onchangeInputs(event, 'description')
                     }
                   />
-                  <Text style={styles.ayuda}>{txtPuntoDEscripcion}</Text>
                 </View>
                 <View style={styles.viewCampos}>
                   <Text style={styles.Text}>Fotografía de evidencia</Text>
@@ -324,7 +321,6 @@ class DatosReporte extends React.Component {
       },
     };
 
-    this.setModalVisible(false);
     ImagePicker.launchCamera(options, (response) => {
       // //console.log('Response = ', response);
       if (response.didCancel) {
@@ -338,7 +334,7 @@ class DatosReporte extends React.Component {
         // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
-        this.setModalVisible(true);
+        this.setModalVisible(false);
       }
     });
   };
@@ -350,7 +346,6 @@ class DatosReporte extends React.Component {
         path: 'images',
       },
     };
-    this.setModalVisible(false);
     ImagePicker.launchImageLibrary(options, (response) => {
       // //console.log('Response = ', response);
 
@@ -365,7 +360,7 @@ class DatosReporte extends React.Component {
         // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
-        this.setModalVisible(true);
+        this.setModalVisible(false);
       }
     });
   };
@@ -396,7 +391,7 @@ const styles = StyleSheet.create({
   TextFooter: {
     color: '#575a5d',
     marginTop: 5,
-    fontSize: 18,
+    fontSize: 15,
     textAlign: 'center',
   },
   openButton: {
@@ -480,18 +475,25 @@ const styles = StyleSheet.create({
   Text: {
     color: Colors.black,
     fontSize: 12,
-    position: 'relative',
-    textAlign: 'left',
     fontWeight: 'bold',
+    fontFamily: 'MavenPro-Medium',
+    textAlign: 'left',
     left: 0,
     margin: 0,
     paddingLeft: 5,
+    paddingTop: 5,
+    paddingBottom: 5,
     padding: 0,
+    zIndex: 1,
   },
   ayuda: {
     color: '#9A9393',
-    fontSize: 10,
-    textAlign: 'left',
+    textAlign: 'center',
+    paddingBottom: 1,
+    paddingTop: 4,
+    fontSize: 9,
+    width: '100%',
+    zIndex: 1,
   },
   viewCampos: {
     flexDirection: 'column',
@@ -500,7 +502,7 @@ const styles = StyleSheet.create({
     height: 'auto',
   },
   body: {
-    fontFamily: 'MavenPro_500Medium',
+    fontFamily: 'MavenPro-Medium',
     textAlign: 'center',
     backgroundColor: '#fff',
   },
@@ -526,7 +528,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     position: 'absolute',
-    fontFamily: 'MavenPro-Medium',
+    fontFamily: 'MavenPro-Bold',
     fontSize: 20,
     left: 20,
     right: 20,
@@ -539,20 +541,19 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     bottom: 0,
     width: width,
-    paddingLeft: 30,
-    paddingRight: 30,
+    paddingLeft: 20,
+    paddingRight: 20,
     opacity: 0.8,
   },
   TextIni: {
     textAlign: 'left',
     fontWeight: 'bold',
-    fontSize: 18,
+    fontSize: 20,
   },
   buttonReportar: {
     bottom: 2,
   },
   buttonOk: {
-    width: 304,
     height: 47,
   },
 });
