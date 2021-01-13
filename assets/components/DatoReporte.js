@@ -19,33 +19,81 @@ import {Colors} from 'react-native/Libraries/NewAppScreen';
 import ImagePicker from 'react-native-image-picker';
 
 const {width, height} = Dimensions.get('window');
-
-const txtUbicacion = 'Ubicación actual del daño en la via';
-const txtPunto = 'Digite un punto de referencia de la dirección';
 const urlRoot = 'https://www.medellin.gov.co';
 const encode64 = require('../libs/B64');
+
+let txtDatosRep = 'Datos del reporte';
+let txtUbicacion = 'Ubicación actual del daño en la via';
+let txtPunto = 'Digite un punto de referencia de la dirección';
+let txtAgregarFoto = 'Agregar fotografia real (Opcional)';
+let campoObligatorio = '';
+let txtFotoEvidencia = 'Fotografía de evidencia';
+let txtEmail = 'Ingresa el correo electrónico de quien reporta';
+let txtEmailAyuda =
+  'Al correo llegarán las notificaciones de avances en la solución del daño';
+
+const fontSizehead = width <= 380 ? 15 : 20;
+const fontSizeText = width <= 380 ? 8 : 12;
+const fontSizeTitle = width <= 380 ? 10 : 12;
+const fontSizeAyudas = width <= 380 ? 7 : 9;
+const inputAlto = width <= 380 ? 35 : 40;
+const fontSizeInput = width <= 380 ? 12 : 15;
 
 class DatosReporte extends React.Component {
   state = {
     data: {},
-    consulta: [],
+    rutaGuardado: '',
     load: false,
     modalVisible: false,
+    paramsTrue: false,
+    parametros: [],
   };
 
   setModalVisible = (visible) => {
     this.setState({modalVisible: visible});
   };
 
+  componentDidUpdate() {
+    console.log('componentDidUpdate');
+    if (this.props.route.params != undefined) {
+      const datosRes = JSON.parse(this.props.route.params.dato);
+      this.state.data = datosRes.data;
+      this.state.rutaGuardado = datosRes.rutaGuardado;
+      this.props.route.params = undefined;
+    }
+  }
+
+  async cargarParametros() {
+    let response = await fetch(
+      'https://www.medellin.gov.co/HuecosMed/cargardatos.hyg?str_sql=eyJTUUwiOiJTUUxfSFVFQ09TX0NPTlNVTFRBUl9QQVJBTUVUUk9TIiwiTiI6MCwiREFUT1MiOnt9fQ%3D%3D',
+    );
+    let res = await response.json();
+    let textos = res[0];
+    txtUbicacion = textos.UBICACION;
+    txtPunto = textos.PUNTOREF;
+    txtAgregarFoto = textos.AGREGARFOTO;
+    campoObligatorio = textos.EMALOBLIGATORIO;
+    txtDatosRep = textos.DATOSGEN;
+    txtEmail = textos.CORREO;
+    txtFotoEvidencia = textos.FOTOEVIDENCIA
+    txtEmailAyuda = textos.AYUDACORREO;
+  }
+
   async componentDidMount() {
-    this.state.data = JSON.parse(this.props.route.params.datos).data;
-    this.state.consulta = JSON.parse(this.props.route.params.datos).consulta;
-    this.onchangeInputs();
-    setTimeout(() => {
-      this.refs.Map_Ref.injectJavaScript(
-        ` mymap.flyTo([${this.state.data.latitude}, ${this.state.data.longitude}], ${this.state.data.zoom})`,
-      );
-    }, 200);
+    this.cargarParametros();
+    console.log('componentDidMount');
+    if (this.props.route.params != undefined) {
+      const datosRes = JSON.parse(this.props.route.params.dato);
+      this.state.data = datosRes.data;
+      this.state.rutaGuardado = datosRes.rutaGuardado;
+      this.onchangeInputs();
+      setTimeout(() => {
+        this.refs.Map_Ref.injectJavaScript(
+          ` mymap.flyTo([${this.state.data.latitude}, ${this.state.data.longitude}], ${this.state.data.zoom})`,
+        );
+      }, 300);
+      this.props.route.params = undefined;
+    }
   }
 
   validarReporte = () => {
@@ -67,24 +115,26 @@ class DatosReporte extends React.Component {
   };
 
   async guardarDatos() {
+    this.setLoadVisible(true);
     Alert.alert('Enviando reporte', 'Espere..', [{text: 'Aceptar'}], {
       cancelable: false,
     });
 
     let url = urlRoot + '/HuecosMed/guardarInfoHueco.hyg';
     let data = {
-      ruta: this.state.consulta.URLLOCALPHOTO,
-      nombre: this.state.data.urlFoto.split('/').pop(),
-      archivo: this.state.data.base64,
+      ruta: this.state.rutaGuardado,
+      nombre: this.state.data.urlFoto  === undefined? '': this.state.data.urlFoto.split('/').pop(),
+      archivo: this.state.data.base64 === undefined ? '' : this.state.data.base64,
       insert: JSON.stringify({
         email: this.state.data.email + '',
         location: this.state.data.location + '',
-        description: this.state.data.description + '',
+        description: this.state.data.description === undefined? '' : this.state.data.description  + '',
         latitude: this.state.data.latitude + '',
         longitude: this.state.data.longitude + '',
-        ruta: this.state.consulta.URLLOCALPHOTO,
+        ruta: this.state.rutaGuardado,
       }),
     };
+    console.log(data);
     const requestOptions = {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -97,7 +147,8 @@ class DatosReporte extends React.Component {
       .then(function (res) {
         this.onMensage();
       })
-      .catch((error) => {});
+      .catch((error) => {
+        this.setLoadVisible(false);});
   }
 
   async onMensage() {
@@ -115,8 +166,6 @@ class DatosReporte extends React.Component {
     })
       .then((e) => e.json())
       .then((responseJson) => {
-        // console.log(responseJson);
-        // console.log(responseJson[0].ID);
         Alert.alert(
           'Su reporte se ha realizado',
           'Gracias por su reporte  \n  \n' +
@@ -126,6 +175,7 @@ class DatosReporte extends React.Component {
           [{text: 'Aceptar'}],
           {cancelable: false},
         );
+        this.setLoadVisible(false);
         this.props.navigation.navigate('Formulario');
       });
   }
@@ -135,7 +185,7 @@ class DatosReporte extends React.Component {
   };
 
   onsubmit = () => {
-    const data = {...this.state.data};
+    const data = this.state.data;
     //console.log(data.email);
   };
 
@@ -157,8 +207,9 @@ class DatosReporte extends React.Component {
         <SafeAreaView style={styles.body}>
           <ScrollView>
             <View style={styles.headerDiv}>
-              <Text style={styles.texthead}>{'Datos del reporte'}</Text>
+              <Text style={styles.texthead}>{txtDatosRep}</Text>
             </View>
+            {this.renderload()}
             <WebView
               ref={'Map_Ref'}
               source={{
@@ -168,7 +219,7 @@ class DatosReporte extends React.Component {
             />
             <View style={styles.viewFooter}>
               <View style={styles.footer}>
-                <Text style={styles.TextIni}>Datos del reporte</Text>
+                <Text style={styles.TextIni}>{txtDatosRep}</Text>
                 <View style={styles.viewCampos}>
                   <Text style={styles.Text}>{txtUbicacion}</Text>
                   <TextInput
@@ -188,7 +239,7 @@ class DatosReporte extends React.Component {
                   />
                 </View>
                 <View style={styles.viewCampos}>
-                  <Text style={styles.Text}>Fotografía de evidencia</Text>
+                  <Text style={styles.Text}>{txtFotoEvidencia}</Text>
                   <View
                     style={
                       this.state.data.urlFoto == undefined ||
@@ -211,9 +262,7 @@ class DatosReporte extends React.Component {
                   : null}
 
                 <View style={styles.viewCampos}>
-                  <Text style={styles.Text}>
-                    {'Ingresa el correo electrónico de quien reporta'}
-                  </Text>
+                  <Text style={styles.Text}>{txtEmail}</Text>
                   <TextInput
                     style={styles.TextInput}
                     autoCompleteType={'email'}
@@ -225,11 +274,7 @@ class DatosReporte extends React.Component {
                       this.onchangeInputs(this.state.data.email, 'email')
                     }
                   />
-                  <Text style={styles.ayuda}>
-                    {
-                      'A este correo llegarán las notificaciones de avances en la solución del daño'
-                    }
-                  </Text>
+                  <Text style={styles.ayuda}>{txtEmailAyuda}</Text>
                 </View>
               </View>
               <Pressable
@@ -253,9 +298,7 @@ class DatosReporte extends React.Component {
   renderSinFoto() {
     return (
       <View>
-        <Text style={styles.TextFooter}>
-          {'Agregar fotografia real (Opcional)'}
-        </Text>
+        <Text style={styles.TextFooter}>{txtAgregarFoto}</Text>
         <View style={styles.viewCamposBtn}>
           <Pressable style={styles.btn} onPress={this.camaraPress}>
             <Image
@@ -364,7 +407,36 @@ class DatosReporte extends React.Component {
       }
     });
   };
+
+  setLoadVisible = (visible) => {
+    this.setState({load: visible});
+  };
+
+  renderload() {
+    return (
+      <Modal
+        transparent={true}
+        visible={this.state.load}
+        onRequestClose={() => {
+          this.setLoadVisible(false);
+        }}>
+        <View style={stylesLoad.contenedor}></View>
+      </Modal>
+    );
+  }
 }
+
+const stylesLoad = StyleSheet.create({
+  contenedor: {
+    flex: 1,
+    width: width,
+    height: height,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.5,
+  },
+});
 
 const styles = StyleSheet.create({
   centeredView: {
@@ -409,7 +481,6 @@ const styles = StyleSheet.create({
   textStyle: {
     color: '#03AED8',
     top: -8,
-    fontWeight: 'bold',
     textAlign: 'center',
     fontSize: 22,
   },
@@ -443,7 +514,7 @@ const styles = StyleSheet.create({
   },
   WebviewMapa: {
     flex: 1,
-    height: height / 3,
+    height: height / 3 - 10,
     position: 'relative',
     width: width,
     margin: 0,
@@ -456,7 +527,7 @@ const styles = StyleSheet.create({
   },
   campoImagen: {
     width: 90,
-    height: 90,
+    height: 80,
     flexDirection: 'row',
   },
   captures: {
@@ -466,17 +537,18 @@ const styles = StyleSheet.create({
   },
   TextInput: {
     width: 'auto',
-    height: 40,
+    height: inputAlto,
     borderRadius: 18,
     borderColor: '#B7B7B7',
     borderWidth: 1,
+    margin: 0,
+    padding: 0,
     paddingLeft: 18,
   },
   Text: {
     color: Colors.black,
-    fontSize: 12,
-    fontWeight: 'bold',
-    fontFamily: 'MavenPro-Medium',
+    fontSize: fontSizeTitle,
+    fontFamily: 'MavenPro-Bold',
     textAlign: 'left',
     left: 0,
     margin: 0,
@@ -488,17 +560,17 @@ const styles = StyleSheet.create({
   },
   ayuda: {
     color: '#9A9393',
-    textAlign: 'center',
+    textAlign: 'left',
     paddingBottom: 1,
     paddingTop: 4,
-    fontSize: 9,
+    fontSize: fontSizeAyudas,
     width: '100%',
     zIndex: 1,
   },
   viewCampos: {
     flexDirection: 'column',
     padding: 0,
-    paddingBottom: 10,
+    paddingBottom: 5,
     height: 'auto',
   },
   body: {
@@ -515,7 +587,7 @@ const styles = StyleSheet.create({
   headerDiv: {
     backgroundColor: '#03AED8',
     width: width,
-    height: 60,
+    height: 50,
     borderBottomRightRadius: 30,
     borderBottomLeftRadius: 30,
     paddingLeft: 0,
@@ -525,7 +597,6 @@ const styles = StyleSheet.create({
   },
   texthead: {
     color: '#fff',
-    fontWeight: 'bold',
     textAlign: 'center',
     position: 'absolute',
     fontFamily: 'MavenPro-Bold',
@@ -547,8 +618,8 @@ const styles = StyleSheet.create({
   },
   TextIni: {
     textAlign: 'left',
-    fontWeight: 'bold',
     fontSize: 20,
+    fontFamily: 'MavenPro-Bold',
   },
   buttonReportar: {
     bottom: 2,

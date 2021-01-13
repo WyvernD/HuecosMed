@@ -11,38 +11,74 @@ import {
 import Swiper from 'react-native-swiper';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
+
+let txtLaApp = '';
+let txtReporta = '';
+let txtReportaDan = '';
+let txtReportaAyuda = '';
+let txtRecibe = '';
+let txtRecibeNotif = '';
+let txtRecibeAyuda = '';
+let txtSaltar = '';
+
 const {width, height} = Dimensions.get('window');
+
+const fontSizeText = width <= 380 ? 30 : 40;
+const fontSizeTextSec = width <= 380 ? 15 : 20;
+const fontSizeInfo = width <= 380 ? 12 : 15;
 
 class SliderScreen extends React.Component {
   saltarPress = () => {
-    this.props.navigation.navigate('Formulario');
+    this.props.navigation.navigate('Formulario', {
+      dato: JSON.stringify({...this.state}),
+    });
   };
   state = {
     slider: true,
+    paramsTrue: false,
+    parametros: [],
   };
 
   async componentDidMount() {
+    this.cargarParametros();
     setTimeout(() => {
       if (this.state.slider) {
         this.render();
         this.state.slider = false;
         this.props.navigation.navigate('Home', {
-          dato: JSON.stringify({...this.state.slider}),
+          dato: JSON.stringify({...this.state}),
         });
       }
-    }, 6000);
+    }, 5500);
+  }
+  async cargarParametros() {
+    let response = await fetch(
+      'https://www.medellin.gov.co/HuecosMed/cargardatos.hyg?str_sql=eyJTUUwiOiJTUUxfSFVFQ09TX0NPTlNVTFRBUl9QQVJBTUVUUk9TIiwiTiI6MCwiREFUT1MiOnt9fQ%3D%3D',
+    );
+    let res = await response.json();
+    this.state.parametros = res;
+    let textos = res[0];
+    txtSaltar = textos.SALTAR;
+    txtReporta = textos.REPORTA;
+    txtReportaDan = textos.REPORTADAN;
+    txtReportaAyuda = textos.REPORTAINFO;
+    txtRecibe = textos.RECIBE;
+    txtRecibeNotif = textos.NOTIF;
+    txtRecibeAyuda = textos.RECIBEINFO;
+    txtLaApp = textos.LAAPP;
+    this.state.paramsTrue = true;
   }
 
   async componentDidUpdate() {
     if (this.props.route.params != undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
+      console.log(datosRes);
       this.state.slider = datosRes.slider;
       this.props.route.params = undefined;
     }
-  }
-
-  pressSlide(tipo) {
-
+    if (!this.state.paramsTrue) {
+      this.cargarParametros();
+    }
   }
 
   renderSlider() {
@@ -52,29 +88,24 @@ class SliderScreen extends React.Component {
         showsButtons={false}
         showsPagination={false}
         ref="swiper"
-        effect="fade"
+        effect="Fade"
         preloadImages={false}
-        onIndexChanged={this.pressSlide('546')}
-        onSwiper={(swiper) => console.log(swiper)}
         loop={false}>
         <View style={styles.slide}>
           <Image
             source={require('../iconos/Rectángulo.png')}
             style={styles.image}
           />
-          <Image
-            source={require('../iconos/grupo1/Grupo_1001.png')}
-            style={[styles.iconFondo, {height: 457}]}
-          />
-
+          <View style={styles.centerImage}>
+            <Image
+              source={require('../iconos/grupo1/Grupo_1001.png')}
+              style={[styles.iconFondo]}
+            />
+          </View>
           <View style={styles.contenedor}>
-            <Text style={styles.reportar}>{'REPORTA'}</Text>
-            <Text style={styles.reportarDanos}>{'LOS DAÑOS EN LA VÍA'}</Text>
-            <Text style={styles.reportarTxt}>
-              {
-                'A través de HUECOSMED podrá reportar los baches o huecos que se se encuentran en vía pública'
-              }
-            </Text>
+            <Text style={styles.reportar}>{txtReporta}</Text>
+            <Text style={styles.reportarDanos}>{txtReportaDan}</Text>
+            <Text style={styles.reportarTxt}>{txtReportaAyuda}</Text>
             <Pressable
               style={stylesSlide.btnSlide}
               onPress={() => {
@@ -86,7 +117,7 @@ class SliderScreen extends React.Component {
               />
             </Pressable>
             <Pressable style={styles.btn} onPress={this.saltarPress}>
-              <Text style={styles.btnText}>SALTAR</Text>
+              <Text style={styles.btnText}>{txtSaltar}</Text>
             </Pressable>
           </View>
         </View>
@@ -95,18 +126,16 @@ class SliderScreen extends React.Component {
             source={require('../iconos/Rectángulo.png')}
             style={styles.image}
           />
-          <Image
-            source={require('../iconos/grupo2/Grupo_1002.png')}
-            style={[styles.iconFondo, {height: 448}]}
-          />
-
+          <View style={styles.centerImage}>
+            <Image
+              source={require('../iconos/grupo2/Grupo_1002.png')}
+              style={[styles.iconFondo]}
+            />
+          </View>
           <View style={styles.contenedor}>
-            <Text style={styles.reportar}>RECIBE</Text>
-            <Text style={styles.reportarDanos}>NOTIFICACIONES</Text>
-            <Text style={styles.reportarTxt}>
-              Estamos en contacto con el ciudadano para informar oportunamente
-              sobre la solución a su reporte
-            </Text>
+            <Text style={styles.reportar}>{txtRecibe}</Text>
+            <Text style={styles.reportarDanos}>{txtRecibeNotif}</Text>
+            <Text style={styles.reportarTxt}>{txtRecibeAyuda}</Text>
             <Pressable
               style={stylesSlide.btnSlide}
               onPress={() => {
@@ -118,7 +147,7 @@ class SliderScreen extends React.Component {
               />
             </Pressable>
             <Pressable style={styles.btn} onPress={this.saltarPress}>
-              <Text style={styles.btnText}>SALTAR</Text>
+              <Text style={styles.btnText}>{txtSaltar}</Text>
             </Pressable>
           </View>
         </View>
@@ -131,23 +160,23 @@ class SliderScreen extends React.Component {
       <View style={styles.Container}>
         <View style={styles.content}>
           <Image
-            source={require('../iconos/splash/logo-alcaldía.png')}
+            source={require('../iconos/splash/logo-alcaldia2.png')}
             style={styles.iconLogo}
           />
           <Image
-            source={require('../iconos/splash/HUECOSMED.png')}
+            source={require('../iconos/splash/HUECOSMED2.png')}
             style={styles.iconHuecos}
           />
           <Image
-            source={require('../iconos/splash/LA_APP.png')}
             style={styles.iconLaApp}
+            source={require('../iconos/splash/LA_APP.png')}
           />
         </View>
         <Image
           source={require('../iconos/splash/arbolito.png')}
           style={styles.iconFooter}
         />
-        <Text style={styles.version}>V3.8</Text>
+        <Text style={styles.version}>V3.9</Text>
       </View>
     );
   }
@@ -161,6 +190,10 @@ class SliderScreen extends React.Component {
     );
   }
 }
+//<Text style={styles.txtApp}>{txtLaApp}</Text>
+/*<Image
+       source={require('../iconos/splash/LA_APP.png')}
+ />*/
 const stylesSlide = StyleSheet.create({
   btnSlide: {
     bottom: '27%',
@@ -177,30 +210,36 @@ const styles = StyleSheet.create({
   version: {
     bottom: 0,
     position: 'absolute',
-    right: 5,
+    right: 10,
   },
   content: {
     flex: 1,
     width: width,
     alignItems: 'center',
-    paddingRight: '20%',
-    paddingLeft: '20%',
   },
   iconLogo: {
     top: '5%',
-    height: 143,
-    position: 'absolute',
+    height: height / 5,
+    resizeMode: 'contain',
+    position: 'relative',
   },
   iconHuecos: {
-    top: '25%',
-    height: 105,
-    position: 'absolute',
+    height: height / 4,
+    resizeMode: 'center',
+    position: 'relative',
     bottom: 0,
   },
+  txtApp: {
+    zIndex: 5,
+    bottom: 2,
+    fontSize: fontSizeTextSec,
+    textAlign: 'center',
+  },
   iconLaApp: {
-    top: '50%',
-    height: 59,
-    position: 'absolute',
+    top: '0%',
+    height: height / 4,
+    resizeMode: 'contain',
+    position: 'relative',
   },
   iconFooter: {
     width: width,
@@ -208,45 +247,53 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
   }, //Fin split
+  centerImage: {
+    top: '1%',
+    position: 'absolute',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 1,
+  },
   iconFondo: {
-    top: 20,
+    top: 5,
     zIndex: 2,
+    height: height / 2,
+    resizeMode: 'center',
     position: 'absolute',
   },
   contentSlide: {
     flex: 1,
-    width: '10%',
     alignItems: 'center',
-    paddingRight: '45%',
-    paddingLeft: '45%',
+    width: width / 2,
+    position: 'absolute',
   },
   contenedor: {
     position: 'absolute',
     alignItems: 'center',
     fontFamily: 'MavenPro-Bold',
     textAlign: 'center',
-    paddingRight: 65,
-    paddingLeft: 65,
-    bottom: 70,
+    paddingRight: 50,
+    paddingLeft: 50,
+    bottom: '5%',
     zIndex: 5,
   },
   reportar: {
-    fontSize: 22,
+    fontSize: fontSizeText,
     bottom: 80,
     color: '#fff',
     fontFamily: 'MavenPro-Bold',
-    fontWeight: 'bold',
   },
   reportarDanos: {
-    fontSize: 25,
+    fontSize: fontSizeTextSec,
     bottom: 80,
     color: '#fff',
-    fontWeight: 'bold',
+    fontFamily: 'MavenPro-Bold',
   },
   reportarTxt: {
-    fontSize: 14,
+    fontSize: fontSizeInfo,
     bottom: 70,
     color: '#fff',
+    fontFamily: 'MavenPro-Medium',
     textAlign: 'center',
     opacity: 1,
   },
@@ -256,11 +303,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   btn: {
-    fontWeight: 'bold',
     textAlign: 'center',
     bottom: 0,
     position: 'absolute',
     alignItems: 'center',
+    fontFamily: 'MavenPro-Bold',
     zIndex: 10,
   },
   slide: {
@@ -271,11 +318,10 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.write,
   },
   image: {
+    zIndex: 1,
     width: width,
     height: height,
-    zIndex: 1,
-    position: 'absolute',
-    opacity: 0.9,
+    position: 'relative',
   },
 });
 

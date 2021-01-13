@@ -12,6 +12,7 @@ import {
   TextInput,
   Pressable,
   View,
+  Modal,
   Dimensions,
 } from 'react-native';
 
@@ -25,23 +26,73 @@ import Geolocation from '@react-native-community/geolocation';
 
 const {width, height} = Dimensions.get('window');
 
-const txtUbicacion = 'Ubicación actual del daño en la via';
-const txtUbicDecripcion =
-  'Puede digitar la dirección donde se encuentra el daño o ubicar el PIN en el mapa';
-const txtPunto = 'Digite un punto de referencia de la dirección';
-const txtPuntoDEscripcion =
-  'El punto de referencia permitira ubicar fácilmente la ubicación del daño';
+let txtReporta = '';
+let txtUbicacion = '';
+let txtUbicDecripcion = '';
+let txtPunto = '';
+let txtPuntoDEscripcion = '';
+let txtAgregarFoto = '';
+let txtPlaceHolder = '';
+let txtTomarFoto = '';
+let txtGalery = '';
+let campoObligatorio = '';
+let alertGalery = '';
+let alertFoto = '';
+const fontSizehead = width <= 380 ? 15 : 20;
+const fontSizeText = width <= 380 ? 8 : 12;
+const fontSizeTitle = width <= 380 ? 10 : 12;
+const fontSizeAyudas = width <= 380 ? 7 : 9;
+const inputAlto = width <= 380 ? 35 : 40;
+const fontSizeInput = width <= 380 ? 12 : 15;
+const ubicarMe = width <= 380 ? height / 2 : height / 3;
+
 const urlRoot = 'https://www.medellin.gov.co';
 
 class getFormulario extends React.Component {
-  state = {
-    data: {},
-    consulta: [],
-    filterData: [],
-    selectedItem: {},
-  };
+  constructor() {
+    super();
+    this.state = {
+      data: {},
+      rutaGuardado: '',
+      filterData: [],
+      selectedItem: {},
+      load: false,
+      parametros: [],
+    };
+  }
+
+  async cargarParametros() {
+    this.setLoadVisible(true);
+    let res = this.state.parametros;
+    if (this.state.parametros.length === 0) {
+      let response = await fetch(
+        'https://www.medellin.gov.co/HuecosMed/cargardatos.hyg?str_sql=eyJTUUwiOiJTUUxfSFVFQ09TX0NPTlNVTFRBUl9QQVJBTUVUUk9TIiwiTiI6MCwiREFUT1MiOnt9fQ%3D%3D',
+      );
+      res = await response.json();
+    }
+    let textos = res[0];
+    txtUbicacion = textos.UBICACION;
+    txtUbicDecripcion = textos.AYUDAUBIC;
+    txtPunto = textos.PUNTOREF;
+    txtPuntoDEscripcion = textos.AYUDAPONDOREF;
+    txtPlaceHolder = textos.PLACEHOLDER;
+    txtAgregarFoto = textos.AGREGARFOTO;
+    txtTomarFoto = textos.FOTO;
+    txtGalery = textos.GALERIA;
+    alertFoto = textos.FOTOSUBIDA;
+    alertGalery = textos.GALERYSAUBIDA;
+    campoObligatorio = textos.UBICOBLIGATORIO;
+    txtReporta = textos.REPORTAHUECOS;
+    this.setLoadVisible(false);
+  }
 
   async componentDidMount() {
+    if (this.props.route.params != undefined) {
+      const datosRes = JSON.parse(this.props.route.params.dato);
+      this.state.parametros = datosRes.parametros;
+      this.props.route.params = undefined;
+    }
+    this.cargarParametros();
     this.cargarDatos();
     this.requestCameraPermission();
     if (Platform.OS === 'ios') {
@@ -62,13 +113,6 @@ class getFormulario extends React.Component {
       try {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-          {
-            title: 'HUECOSMED necesita tu ubicación',
-            message:
-              'Es necesario activar el GPS para poder ubicar adecuadamente el daño en el momento del reporte',
-            buttonNegative: 'No activar',
-            buttonPositive: 'Activar GPS',
-          },
         );
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
           //To Check, If Permission is granted
@@ -106,6 +150,7 @@ class getFormulario extends React.Component {
   }
 
   async cargarDatos() {
+    this.setLoadVisible(true);
     const consulta = {
       SQL: 'SQL_HUECOS_CONSULTAR_PARAMETROS_HUECO',
       N: 0,
@@ -115,29 +160,19 @@ class getFormulario extends React.Component {
       urlRoot +
       '/HuecosMed/cargardatos.hyg?str_sql=' +
       encodeURIComponent(encode64(JSON.stringify(consulta)));
-    fetch(url, {
-      method: 'GET',
-    })
-      .then((e) => e.json())
-      .then((responseJson) => {
-        this.setState({consulta: responseJson[0]});
-        this.refs.Map_Ref.injectJavaScript(
-          ` mymap.flyTo([${this.state.consulta.latitude}, ${this.state.consulta.longitude}], ${this.state.consulta.zoom})`,
-        );
-      })
-      .catch((error) => {
-        // console.error(error);
-      });
+    let response = await fetch(url);
+    let res = await response.json();
+    this.setState({rutaGuardado: res[0].URLLOCALPHOTO});
+    if (res[0].latitude !== undefined && res[0].longitude !== undefined) {
+      this.refs.Map_Ref.injectJavaScript(
+        ` mymap.flyTo([${res[0].latitude}, ${res[0].longitude}], ${res[0].zoom})`,
+      );
+    }
+    this.setLoadVisible(false);
   }
-
-  onsubmit = () => {
-    const data = {...this.state.data};
-    // //console.log(data);
-  };
 
   onchangeInputs = (text, name) => {
     this.setState({data: {...this.state.data, [name]: text}});
-    this.onsubmit();
   };
 
   camaraPress = () => {
@@ -162,7 +197,7 @@ class getFormulario extends React.Component {
         // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
-        Alert.alert('Información', 'Imagen subida correctamente');
+        Alert.alert('Información', alertFoto);
       }
     });
   };
@@ -190,7 +225,7 @@ class getFormulario extends React.Component {
         // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
         this.state.data.base64 = response.data;
-        Alert.alert('Información', 'Imagen subida correctamente');
+        Alert.alert('Información', alertGalery);
       }
     });
   };
@@ -199,15 +234,12 @@ class getFormulario extends React.Component {
     const datos = {...this.state.data};
     if (datos.location !== undefined && datos.location !== '') {
       this.props.navigation.navigate('Reporte', {
-        datos: JSON.stringify(this.state),
+        dato: JSON.stringify(this.state),
       });
     } else {
-      Alert.alert(
-        'Campo obligatorio',
-        'El campo ubicación es obligatorio.',
-        [{text: 'Aceptar'}],
-        {cancelable: false},
-      );
+      Alert.alert('Campo obligatorio', campoObligatorio, [{text: 'Aceptar'}], {
+        cancelable: false,
+      });
     }
   };
 
@@ -218,17 +250,17 @@ class getFormulario extends React.Component {
   };
 
   limpiar = () => {
-    this.setState({selectedItem: ''});
+    this.setState({selectedItem: []});
     this.setState({filterData: []});
-    this.searchCoordinates('');
     this.setState({
       data: {...this.state.data, ['location']: ''},
     });
-  };
+  }
 
   getCapas = () => {};
 
   getUbicacion = () => {
+    this.setLoadVisible(true);
     Geolocation.getCurrentPosition(
       //Will give you the current location
       (position) => {
@@ -237,6 +269,7 @@ class getFormulario extends React.Component {
         this.refs.Map_Ref.injectJavaScript(
           ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
         );
+        this.setLoadVisible(false);
       },
       (error) => {
         if (error.PERMISSION_DENIED === 1) {
@@ -249,8 +282,9 @@ class getFormulario extends React.Component {
         } else {
           alert(error.message);
         }
+        this.setLoadVisible(false);
       },
-      {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
+      {enableHighAccuracy: false, timeout: 3000, maximumAge: 1000},
     );
   };
   async ActivarGps() {
@@ -270,7 +304,7 @@ class getFormulario extends React.Component {
   };
 
   searchDirection = (direccion) => {
-    if (direccion.length > 0) {
+    if (direccion.length > 3) {
       const consulta = {
         SQL: 'SQL_HUECOS_CONSULTAR_DIRECCIONES_LISSTAG',
         N: 1,
@@ -323,7 +357,9 @@ class getFormulario extends React.Component {
           // console.error(error);
         });
     } else {
+      this.setState({selectedItem: ''});
       this.setState({filterData: []});
+      this.state.data.location = '';
     }
   };
 
@@ -345,7 +381,7 @@ class getFormulario extends React.Component {
             />
             <View style={[styles.contenedor, {top: 0}]}>
               <View style={styles.headerDiv}>
-                <Text style={styles.texthead}>{'Reportar a HUECOSMED'}</Text>
+                <Text style={styles.texthead}>{txtReporta}</Text>
               </View>
               <View style={[styles.viewCampos, styles.viewCampospad]}>
                 <Text style={styles.Text}>{txtUbicacion}</Text>
@@ -353,11 +389,11 @@ class getFormulario extends React.Component {
                 <Text style={styles.ayuda}>{txtUbicDecripcion}</Text>
               </View>
               <View style={[styles.viewCampos, styles.viewCampospad]}>
-                <Text style={styles.Text}>{txtPunto}</Text>
+                <Text style={[styles.Text, {paddingTop: 0}]}>{txtPunto}</Text>
                 <TextInput
                   style={styles.TextInput}
                   value={this.state.data.description}
-                  placeholder={this.state.consulta.placeHolder}
+                  placeholder={txtPlaceHolder}
                   onChangeText={(event) =>
                     this.onchangeInputs(event, 'description')
                   }
@@ -379,12 +415,10 @@ class getFormulario extends React.Component {
             </Pressable>
             <View>
               <View style={styles.footer}>
-                <Text style={styles.TextFooter}>
-                  {'Agregar fotografia real (Opcional)'}
-                </Text>
+                <Text style={styles.TextFooter}>{txtAgregarFoto}</Text>
                 <View style={styles.viewCamposFotos}>
                   <View style={styles.viewCamposBtn}>
-                    <Text style={styles.Txtfoto}>Tomar fotografia</Text>
+                    <Text style={styles.Txtfoto}>{txtTomarFoto}</Text>
                     <View style={styles.viewicono}>
                       <Pressable style={styles.btn} onPress={this.camaraPress}>
                         <Image
@@ -395,7 +429,7 @@ class getFormulario extends React.Component {
                     </View>
                   </View>
                   <View style={styles.viewCamposBtn}>
-                    <Text style={styles.Txtfoto}>Agregar de galeria</Text>
+                    <Text style={styles.Txtfoto}>{txtGalery}</Text>
                     <View style={styles.viewicono}>
                       <Pressable style={styles.btn} onPress={this.galeryPress}>
                         <Image
@@ -408,7 +442,7 @@ class getFormulario extends React.Component {
                 </View>
                 <Pressable
                   style={styles.buttonReportar}
-                  onPress={this.validarReporte}>
+                  onPress={() => this.validarReporte()}>
                   <Image
                     style={styles.buttonOk}
                     source={require('../iconos/REPORTAR.png')}
@@ -416,6 +450,7 @@ class getFormulario extends React.Component {
                 </Pressable>
               </View>
             </View>
+            {this.renderload()}
           </ScrollView>
         </SafeAreaView>
       </View>
@@ -424,7 +459,7 @@ class getFormulario extends React.Component {
 
   renderAutoComplete() {
     return (
-      <View style={{height: 40}}>
+      <View style={{height: inputAlto}}>
         <Pressable
           style={
             this.state.data.location == undefined ||
@@ -441,6 +476,12 @@ class getFormulario extends React.Component {
           autoCapitalize="none"
           defaultValue={this.state.selectedItem}
           data={this.state.filterData}
+          style={{
+            backgroundColor: 'transparent',
+            height: inputAlto,
+            fontSize: fontSizeInput,
+            fontFamily: 'MavenPro-Medium',
+          }}
           containerStyle={styles.containerStyle}
           inputContainerStyle={styles.inputContainerStyle}
           listContainerStyle={styles.listContainerStyle}
@@ -455,9 +496,7 @@ class getFormulario extends React.Component {
                 this.setState({selectedItem: item});
                 this.setState({filterData: []});
                 this.searchCoordinates(item);
-                this.setState({
-                  data: {...this.state.data, ['location']: item},
-                });
+                this.state.data.location = item;
               }}>
               <Pressable style={styles.imgDir}>
                 <Image
@@ -489,7 +528,40 @@ class getFormulario extends React.Component {
       </View>
     );
   }
+
+  setLoadVisible = (visible) => {
+    this.setState({load: visible});
+  };
+
+  renderload() {
+    return (
+      <Modal
+        transparent={true}
+        visible={this.state.load}
+        onRequestClose={() => {
+          this.setLoadVisible(false);
+        }}>
+        <View style={stylesLoad.contenedor} />
+      </Modal>
+    );
+  }
 }
+
+const stylesLoad = StyleSheet.create({
+  contenedor: {
+    flex: 1,
+    width: width,
+    height: height,
+    backgroundColor: '#000',
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.5,
+  },
+  loadGif: {
+    width: width / 3,
+    height: height / 5,
+  },
+});
 
 const styles = StyleSheet.create({
   Container: {
@@ -502,14 +574,16 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#B7B7B7',
-    fontSize: 12,
+    fontFamily: 'MavenPro-Medium',
+    marginBottom: 50,
     zIndex: 9,
   },
   inputContainerStyle: {
     paddingLeft: 30,
     paddingRight: 30,
-    fontSize: 12,
+    fontSize: fontSizeText,
     borderWidth: 0,
+    height: inputAlto,
     borderRadius: 18,
     zIndex: 4,
     color: Colors.black,
@@ -525,7 +599,6 @@ const styles = StyleSheet.create({
   },
   SearchBoxTouch: {
     margin: 5,
-    fontSize: 15,
     borderWidth: 1,
     borderColor: '#B7B7B7',
     flex: 1,
@@ -534,10 +607,12 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     paddingTop: 2,
     zIndex: 10,
+    fontSize: fontSizeText,
   },
   SearchBoxTextItem: {
     margin: 3,
-    fontSize: 12,
+    fontSize: fontSizeTitle,
+    fontFamily: 'MavenPro-Medium',
     marginLeft: 20,
     right: 2,
     width: '90%',
@@ -602,8 +677,8 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     zIndex: 1,
-    right: '5%',
-    top: height / 3,
+    right: 5,
+    top: ubicarMe,
     borderRadius: 50,
   },
   iconoCapa: {
@@ -611,18 +686,21 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   TextInput: {
-    width: 'auto',
-    height: 40,
+    width: '100%',
+    height: inputAlto,
+    fontFamily: 'MavenPro-Medium',
     borderRadius: 18,
+    fontSize: fontSizeInput,
+    margin: 0,
+    padding: 0,
     borderColor: '#B7B7B7',
     borderWidth: 1,
     paddingLeft: 18,
   },
   Text: {
     color: Colors.black,
-    fontSize: 12,
-    fontWeight: 'bold',
-    fontFamily: 'MavenPro-Medium',
+    fontSize: fontSizeTitle,
+    fontFamily: 'MavenPro-Bold',
     textAlign: 'left',
     left: 0,
     margin: 0,
@@ -637,7 +715,8 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     paddingBottom: 1,
     paddingTop: 4,
-    fontSize: 9,
+    fontSize: fontSizeAyudas,
+    fontFamily: 'MavenPro-Regular',
     width: '100%',
     zIndex: 1,
   },
@@ -671,11 +750,10 @@ const styles = StyleSheet.create({
   },
   texthead: {
     color: '#fff',
-    fontWeight: 'bold',
     textAlign: 'center',
     position: 'absolute',
-    fontFamily: 'MavenPro-Medium',
-    fontSize: 20,
+    fontFamily: 'MavenPro-Bold',
+    fontSize: fontSizehead,
     left: 20,
     right: 20,
     bottom: 10,
@@ -731,20 +809,18 @@ const styles = StyleSheet.create({
   btn: {
     height: 35,
     zIndex: 2,
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   icono: {
     top: 5,
-    left: '35%',
-    right: '40%',
-    width: '35%',
-    height: '63%',
     position: 'relative',
     alignItems: 'center',
     zIndex: 3,
   },
   Txtfoto: {
     color: '#575a5d',
-    fontSize: 10,
+    fontSize: fontSizeText,
     textAlign: 'center',
     marginBottom: 5,
   },
