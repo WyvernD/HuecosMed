@@ -19,6 +19,7 @@ let txtRecibe = '';
 let txtRecibeNotif = '';
 let txtRecibeAyuda = '';
 let txtSaltar = '';
+let txtversion = 'V3.10';
 
 const {width, height} = Dimensions.get('window');
 
@@ -65,6 +66,7 @@ class SliderScreen extends React.Component {
     txtRecibeNotif = textos.NOTIF;
     txtRecibeAyuda = textos.RECIBEINFO;
     txtLaApp = textos.LAAPP;
+    txtversion = textos.VERS;
     this.state.paramsTrue = true;
   }
 
@@ -175,7 +177,7 @@ class SliderScreen extends React.Component {
           source={require('../iconos/splash/arbolito.png')}
           style={styles.iconFooter}
         />
-        <Text style={styles.version}>V3.10</Text>
+        <Text style={styles.version}>{txtversion}</Text>
       </View>
     );
   }
