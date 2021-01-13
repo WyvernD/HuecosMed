@@ -19,7 +19,7 @@ import {Colors} from 'react-native/Libraries/NewAppScreen';
 import ImagePicker from 'react-native-image-picker';
 
 const {width, height} = Dimensions.get('window');
-const urlRoot = 'http://192.168.1.10:8888'; //'https://www.medellin.gov.co';
+const urlRoot = 'https://www.medellin.gov.co';
 const encode64 = require('../libs/B64');
 
 let txtDatosRep = 'Datos del reporte';
