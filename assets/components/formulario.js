@@ -56,7 +56,7 @@ class getFormulario extends React.Component {
       rutaGuardado: '',
       filterData: [],
       selectedItem: {},
-      load: false,
+      load: true,
       parametros: [],
     };
   }
@@ -107,7 +107,7 @@ class getFormulario extends React.Component {
         (error) => {
           alert(error.message);
         },
-        {enableHighAccuracy: false, timeout: 30000, maximumAge: 1000},
+        {enableHighAccuracy: true, timeout: 20000, maximumAge: 0},
       );
     } else {
       try {
@@ -179,7 +179,7 @@ class getFormulario extends React.Component {
     let options = {
       storageOptions: {
         skipBackup: true,
-        path: 'images',
+        path: 'HuecosMed',
         privateDirectory: true,
       },
     };
@@ -206,7 +206,7 @@ class getFormulario extends React.Component {
     let options = {
       storageOptions: {
         skipBackup: true,
-        path: 'images',
+        path: 'HuecosMed',
         privateDirectory: true,
       },
     };
@@ -219,7 +219,7 @@ class getFormulario extends React.Component {
         // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
         // console.log('User tapped custom button: ', response.customButton);
-        alert(response.customButton);
+        //alert(response.customButton);
       } else {
         //const source = {uri: response.uri};
         // console.log('response', JSON.stringify(response));
@@ -231,12 +231,15 @@ class getFormulario extends React.Component {
   };
 
   validarReporte = () => {
+    this.setLoadVisible(true);
     const datos = {...this.state.data};
     if (datos.location !== undefined && datos.location !== '') {
       this.props.navigation.navigate('Reporte', {
         dato: JSON.stringify(this.state),
       });
+      this.setLoadVisible(false);
     } else {
+      this.setLoadVisible(false);
       Alert.alert('Campo obligatorio', campoObligatorio, [{text: 'Aceptar'}], {
         cancelable: false,
       });
@@ -255,7 +258,7 @@ class getFormulario extends React.Component {
     this.setState({
       data: {...this.state.data, ['location']: ''},
     });
-  }
+  };
 
   getCapas = () => {};
 
@@ -264,27 +267,28 @@ class getFormulario extends React.Component {
     Geolocation.getCurrentPosition(
       //Will give you the current location
       (position) => {
-        const currentLongitude = JSON.stringify(position.coords.longitude);
-        const currentLatitude = JSON.stringify(position.coords.latitude);
+        let currentLongitude = JSON.stringify(position.coords.longitude);
+        let currentLatitude = JSON.stringify(position.coords.latitude);
         this.refs.Map_Ref.injectJavaScript(
           ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
         );
         this.setLoadVisible(false);
       },
       (error) => {
-        if (error.PERMISSION_DENIED === 1) {
+        console.log(error);
+        if (error.code === 2) {
           Alert.alert(
             'HUECOSMED necesita tu ubicación.',
             'Es necesario activar el GPS para poder ubicar adecuadamente el daño en el momento del reporte.',
             [{text: 'Aceptar', onPress: () => this.ActivarGps()}],
             {cancelable: false},
           );
+          this.setLoadVisible(false);
         } else {
-          alert(error.message);
+          this.getUbicacion();
         }
-        this.setLoadVisible(false);
       },
-      {enableHighAccuracy: false, timeout: 3000, maximumAge: 1000},
+      {enableHighAccuracy: true, timeout: 2000, maximumAge: 0},
     );
   };
   async ActivarGps() {
@@ -541,7 +545,12 @@ class getFormulario extends React.Component {
         onRequestClose={() => {
           this.setLoadVisible(false);
         }}>
-        <View style={stylesLoad.contenedor} />
+        <View style={stylesLoad.contenedor}>
+          <Image
+            source={require('../iconos/loading.gif')}
+            style={stylesLoad.loadGif}
+          />
+        </View>
       </Modal>
     );
   }
@@ -558,8 +567,8 @@ const stylesLoad = StyleSheet.create({
     opacity: 0.5,
   },
   loadGif: {
-    width: width / 3,
-    height: height / 5,
+    opacity: 10,
+    resizeMode: 'center',
   },
 });
 
@@ -742,7 +751,7 @@ const styles = StyleSheet.create({
   },
   headerDiv: {
     backgroundColor: '#03AED8',
-    height: 60,
+    height: 50,
     borderBottomRightRadius: 30,
     borderBottomLeftRadius: 30,
     paddingLeft: 0,

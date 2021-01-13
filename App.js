@@ -30,7 +30,11 @@ const App: () => ReactNode = () => {
         <Stack.Screen
           name="Reporte"
           component={ReporteView}
-          options={navigationOptions}
+          options={{
+            title: '',
+            headerTintColor: '#fff',
+            headerTransparent: true,
+          }}
         />
       </Stack.Navigator>
     </NavigationContainer>

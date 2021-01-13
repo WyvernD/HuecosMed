@@ -19,7 +19,7 @@ import {Colors} from 'react-native/Libraries/NewAppScreen';
 import ImagePicker from 'react-native-image-picker';
 
 const {width, height} = Dimensions.get('window');
-const urlRoot = 'https://www.medellin.gov.co';
+const urlRoot = 'http://192.168.1.10:8888'; //'https://www.medellin.gov.co';
 const encode64 = require('../libs/B64');
 
 let txtDatosRep = 'Datos del reporte';
@@ -54,11 +54,11 @@ class DatosReporte extends React.Component {
   };
 
   componentDidUpdate() {
-    console.log('componentDidUpdate');
     if (this.props.route.params != undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
       this.state.data = datosRes.data;
       this.state.rutaGuardado = datosRes.rutaGuardado;
+      this.setLoadVisible(false);
       this.props.route.params = undefined;
     }
   }
@@ -75,11 +75,12 @@ class DatosReporte extends React.Component {
     campoObligatorio = textos.EMALOBLIGATORIO;
     txtDatosRep = textos.DATOSGEN;
     txtEmail = textos.CORREO;
-    txtFotoEvidencia = textos.FOTOEVIDENCIA
+    txtFotoEvidencia = textos.FOTOEVIDENCIA;
     txtEmailAyuda = textos.AYUDACORREO;
   }
 
   async componentDidMount() {
+    this.setLoadVisible(true);
     this.cargarParametros();
     console.log('componentDidMount');
     if (this.props.route.params != undefined) {
@@ -91,12 +92,15 @@ class DatosReporte extends React.Component {
         this.refs.Map_Ref.injectJavaScript(
           ` mymap.flyTo([${this.state.data.latitude}, ${this.state.data.longitude}], ${this.state.data.zoom})`,
         );
+        this.setLoadVisible(false);
       }, 300);
       this.props.route.params = undefined;
     }
+    this.setLoadVisible(false);
   }
 
   validarReporte = () => {
+    this.setLoadVisible(true);
     if (
       this.state.data.email != undefined &&
       this.state.data.email != '' &&
@@ -104,7 +108,21 @@ class DatosReporte extends React.Component {
       this.state.data.location != ''
     ) {
       this.guardarDatos();
+      let emailTru = this.isEmail(this.state.data.email);
+      console.log(emailTru);
+      if (emailTru !== 'Invalid Email') {
+        //this.guardarDatos();
+      } else {
+        this.setLoadVisible(false);
+        Alert.alert(
+          'Advertencia',
+          'El correo electrónico es invalido.',
+          [{text: 'Aceptar'}],
+          {cancelable: false},
+        );
+      }
     } else {
+      this.setLoadVisible(false);
       Alert.alert(
         'Campo obligatorio',
         'El campo correo electrónico es obligatorio.',
@@ -114,70 +132,73 @@ class DatosReporte extends React.Component {
     }
   };
 
+  async isEmail(val) {
+    let regEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    if (!regEmail.test(val)) {
+      return 'Invalid Email';
+    } else {
+      return val;
+    }
+  }
+
   async guardarDatos() {
     this.setLoadVisible(true);
-    Alert.alert('Enviando reporte', 'Espere..', [{text: 'Aceptar'}], {
-      cancelable: false,
-    });
-
     let url = urlRoot + '/HuecosMed/guardarInfoHueco.hyg';
     let data = {
       ruta: this.state.rutaGuardado,
-      nombre: this.state.data.urlFoto  === undefined? '': this.state.data.urlFoto.split('/').pop(),
-      archivo: this.state.data.base64 === undefined ? '' : this.state.data.base64,
+      nombre:
+        this.state.data.urlFoto === undefined
+          ? ''
+          : this.state.data.urlFoto.split('/').pop(),
+      archivo:
+        this.state.data.base64 === undefined ? '' : this.state.data.base64,
       insert: JSON.stringify({
         email: this.state.data.email + '',
         location: this.state.data.location + '',
-        description: this.state.data.description === undefined? '' : this.state.data.description  + '',
+        description:
+          this.state.data.description === undefined
+            ? ''
+            : this.state.data.description + '',
         latitude: this.state.data.latitude + '',
         longitude: this.state.data.longitude + '',
         ruta: this.state.rutaGuardado,
       }),
     };
-    console.log(data);
     const requestOptions = {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(data),
     };
     fetch(url, requestOptions)
-      .then((e) => {
-        this.onMensage();
-      })
-      .then(function (res) {
-        this.onMensage();
+      .then((e) => e.text())
+      .then((data) => {
+        this.onMensage(data);
       })
       .catch((error) => {
-        this.setLoadVisible(false);});
+        this.setLoadVisible(false);
+      });
   }
 
-  async onMensage() {
-    const consulta = {
-      SQL: 'SQL_HUECOS_CONSULTAR_ULTIMO',
-      N: 0,
-      DATOS: {},
-    };
-    let url =
-      urlRoot +
-      '/HuecosMed/cargardatos.hyg?str_sql=' +
-      encodeURIComponent(encode64(JSON.stringify(consulta)));
-    fetch(url, {
-      method: 'GET',
-    })
-      .then((e) => e.json())
-      .then((responseJson) => {
-        Alert.alert(
-          'Su reporte se ha realizado',
-          'Gracias por su reporte  \n  \n' +
-            'Nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
-            'Recuerde su número de reporte  ' +
-            responseJson[0].ID,
-          [{text: 'Aceptar'}],
-          {cancelable: false},
-        );
-        this.setLoadVisible(false);
-        this.props.navigation.navigate('Formulario');
-      });
+  async onMensage(datos) {
+    let res = datos.split(',');
+    if (res[0] === 'Ok') {
+      Alert.alert(
+        'Su reporte se ha realizado',
+        'Gracias por su reporte  \n  \n' +
+          'nuestro equipo se encuentra verificando  la información para dar solución. \n  \n ' +
+          'Recuerde su número de reporte  ' +
+          res[1],
+        [{text: 'Aceptar'}],
+        {cancelable: false},
+      );
+      this.props.navigation.navigate('Formulario');
+    } else {
+      Alert.alert(
+        'Error',
+        'comuniquese con su proveedor de servicios',
+        [{text: 'Aceptar'}],{cancelable: false});
+    }
+    this.setLoadVisible(false);
   }
   onchangeInputs = (text, name) => {
     this.setState({data: {...this.state.data, [name]: text}});
@@ -360,7 +381,8 @@ class DatosReporte extends React.Component {
     let options = {
       storageOptions: {
         skipBackup: true,
-        path: 'images',
+        path: 'HuecosMed',
+        privateDirectory: true,
       },
     };
 
@@ -386,7 +408,8 @@ class DatosReporte extends React.Component {
     let options = {
       storageOptions: {
         skipBackup: true,
-        path: 'images',
+        path: 'HuecosMed',
+        privateDirectory: true,
       },
     };
     ImagePicker.launchImageLibrary(options, (response) => {
@@ -420,7 +443,12 @@ class DatosReporte extends React.Component {
         onRequestClose={() => {
           this.setLoadVisible(false);
         }}>
-        <View style={stylesLoad.contenedor}></View>
+        <View style={stylesLoad.contenedor}>
+          <Image
+            source={require('../iconos/loading.gif')}
+            style={stylesLoad.loadGif}
+          />
+        </View>
       </Modal>
     );
   }
@@ -435,6 +463,10 @@ const stylesLoad = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     opacity: 0.5,
+  },
+  loadGif: {
+    opacity: 10,
+    resizeMode: 'center',
   },
 });
 

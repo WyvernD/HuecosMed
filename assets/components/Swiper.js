@@ -11,7 +11,6 @@ import {
 import Swiper from 'react-native-swiper';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
-
 let txtLaApp = '';
 let txtReporta = '';
 let txtReportaDan = '';
@@ -176,7 +175,7 @@ class SliderScreen extends React.Component {
           source={require('../iconos/splash/arbolito.png')}
           style={styles.iconFooter}
         />
-        <Text style={styles.version}>V3.9</Text>
+        <Text style={styles.version}>V3.10</Text>
       </View>
     );
   }
@@ -190,10 +189,6 @@ class SliderScreen extends React.Component {
     );
   }
 }
-//<Text style={styles.txtApp}>{txtLaApp}</Text>
-/*<Image
-       source={require('../iconos/splash/LA_APP.png')}
- />*/
 const stylesSlide = StyleSheet.create({
   btnSlide: {
     bottom: '27%',
