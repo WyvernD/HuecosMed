@@ -38,6 +38,8 @@ let txtGalery = '';
 let campoObligatorio = '';
 let alertGalery = '';
 let alertFoto = '';
+let count = 1;
+
 const fontSizehead = width <= 380 ? 15 : 20;
 const fontSizeText = width <= 380 ? 8 : 12;
 const fontSizeTitle = width <= 380 ? 10 : 12;
@@ -94,7 +96,6 @@ class getFormulario extends React.Component {
     }
     this.cargarParametros();
     this.cargarDatos();
-    this.requestCameraPermission();
     if (Platform.OS === 'ios') {
       Geolocation.getCurrentPosition(
         //Will give you the current location
@@ -107,7 +108,7 @@ class getFormulario extends React.Component {
         (error) => {
           alert(error.message);
         },
-        {enableHighAccuracy: true, timeout: 20000, maximumAge: 0},
+        {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000 },
       );
     } else {
       try {
@@ -120,32 +121,6 @@ class getFormulario extends React.Component {
       } catch (err) {
         // console.log(err);
       }
-    }
-  }
-
-  async requestCameraPermission() {
-    try {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      ]);
-
-      const permissionCamera = await PermissionsAndroid.check(
-        'android.permission.CAMERA',
-      );
-      const permissionWriteStorage = await PermissionsAndroid.check(
-        'android.permission.WRITE_EXTERNAL_STORAGE',
-      );
-
-      if (!permissionCamera || !permissionWriteStorage) {
-        return {
-          error: 'Failed to get the required permissions.',
-        };
-      }
-    } catch (error) {
-      return {
-        error: 'Failed to get the required permissions.',
-      };
     }
   }
 
@@ -180,7 +155,7 @@ class getFormulario extends React.Component {
       storageOptions: {
         skipBackup: true,
         path: 'HuecosMed',
-        privateDirectory: true,
+        privateDirectory: false,
       },
     };
     ImagePicker.launchCamera(options, (response) => {
@@ -248,12 +223,38 @@ class getFormulario extends React.Component {
 
   coordinatesFromMap = (data) => {
     let datos = JSON.parse(data);
-    console.log(datos);
     this.llenarUbicacion(datos.lat, datos.lng);
+    if (
+      this.state.data.location === undefined ||
+      this.state.data.location === ''
+    ) {
+      this.getDirGeoCod(datos.lat, datos.lng);
+    }
   };
 
+  async getDirGeoCod(lat, lng) {
+    this.setLoadVisible(true);
+    const consulta = {
+      SQL: 'SQL_HUECOS_CONSULTAR_GEOCOD_DIRECCION',
+      N: 2,
+      DATOS: {P1: lng, P2: lat},
+    };
+    let url =
+      urlRoot +
+      '/HuecosMed/cargardatos.hyg?str_sql=' +
+      encodeURIComponent(encode64(JSON.stringify(consulta)));
+    let response = await fetch(url);
+    let res = await response.json();
+    let direccion = res[0].DATOS;
+    this.setState({
+      data: {...this.state.data, ['location']: direccion},
+    });
+    this.setState({selectedItem: direccion});
+    this.setLoadVisible(false);
+  }
+
   limpiar = () => {
-    this.setState({selectedItem: []});
+    this.setState({selectedItem: ''});
     this.setState({filterData: []});
     this.setState({
       data: {...this.state.data, ['location']: ''},
@@ -272,10 +273,11 @@ class getFormulario extends React.Component {
         this.refs.Map_Ref.injectJavaScript(
           ` mymap.flyTo([${currentLatitude}, ${currentLongitude}], 18)`,
         );
+        this.getDirGeoCod(currentLatitude, currentLongitude);
         this.setLoadVisible(false);
       },
       (error) => {
-        console.log(error);
+        //  console.log(error);
         if (error.code === 2) {
           Alert.alert(
             'HUECOSMED necesita tu ubicación.',
@@ -284,15 +286,29 @@ class getFormulario extends React.Component {
             {cancelable: false},
           );
           this.setLoadVisible(false);
+        } else if (error.code === 3) {
+          Alert.alert(
+            '',
+            'No se pudo obtener tu ubicación.',
+            [{text: 'Aceptar', onPress: () => this.ActivarGps()}],
+            {cancelable: false},
+          );
+          this.setLoadVisible(false);
         } else {
-          this.getUbicacion();
+          Alert.alert(
+            '',
+            error,
+            [{text: 'Aceptar', onPress: () => this.ActivarGps()}],
+            {cancelable: false},
+          );
+          this.setLoadVisible(false);
         }
       },
-      {enableHighAccuracy: true, timeout: 2000, maximumAge: 0},
+      {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000 },
     );
   };
   async ActivarGps() {
-    console.log('Activar GPS');
+  //  console.log('Activar GPS');
   }
 
   llenarUbicacion = (currentLatitude, currentLongitude) => {
@@ -583,7 +599,6 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: '#B7B7B7',
-    fontFamily: 'MavenPro-Medium',
     marginBottom: 50,
     zIndex: 9,
   },

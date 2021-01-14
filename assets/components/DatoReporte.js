@@ -39,6 +39,15 @@ const fontSizeAyudas = width <= 380 ? 7 : 9;
 const inputAlto = width <= 380 ? 35 : 40;
 const fontSizeInput = width <= 380 ? 12 : 15;
 
+const isEmail = (val) => {
+  let regEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+  if (!regEmail.test(val)) {
+    return 'Invalid Email';
+  } else {
+    return val;
+  }
+}
+
 class DatosReporte extends React.Component {
   state = {
     data: {},
@@ -82,7 +91,6 @@ class DatosReporte extends React.Component {
   async componentDidMount() {
     this.setLoadVisible(true);
     this.cargarParametros();
-    console.log('componentDidMount');
     if (this.props.route.params != undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
       this.state.data = datosRes.data;
@@ -93,7 +101,7 @@ class DatosReporte extends React.Component {
           ` mymap.flyTo([${this.state.data.latitude}, ${this.state.data.longitude}], ${this.state.data.zoom})`,
         );
         this.setLoadVisible(false);
-      }, 300);
+      }, 1000);
       this.props.route.params = undefined;
     }
     this.setLoadVisible(false);
@@ -107,11 +115,9 @@ class DatosReporte extends React.Component {
       this.state.data.location != undefined &&
       this.state.data.location != ''
     ) {
-      this.guardarDatos();
-      let emailTru = this.isEmail(this.state.data.email);
-      console.log(emailTru);
+      let emailTru = isEmail(this.state.data.email);
       if (emailTru !== 'Invalid Email') {
-        //this.guardarDatos();
+        this.guardarDatos();
       } else {
         this.setLoadVisible(false);
         Alert.alert(
@@ -132,14 +138,6 @@ class DatosReporte extends React.Component {
     }
   };
 
-  async isEmail(val) {
-    let regEmail = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    if (!regEmail.test(val)) {
-      return 'Invalid Email';
-    } else {
-      return val;
-    }
-  }
 
   async guardarDatos() {
     this.setLoadVisible(true);
@@ -382,7 +380,7 @@ class DatosReporte extends React.Component {
       storageOptions: {
         skipBackup: true,
         path: 'HuecosMed',
-        privateDirectory: true,
+        privateDirectory: false,
       },
     };
 

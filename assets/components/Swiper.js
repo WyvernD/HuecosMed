@@ -3,12 +3,15 @@ import {
   View,
   StatusBar,
   StyleSheet,
+  PermissionsAndroid,
   Text,
+  Alert,
   Image,
   Dimensions,
   Pressable,
 } from 'react-native';
 import Swiper from 'react-native-swiper';
+import * as RNFS from 'react-native-fs';
 import {Colors} from 'react-native/Libraries/NewAppScreen';
 
 let txtLaApp = '';
@@ -19,7 +22,10 @@ let txtRecibe = '';
 let txtRecibeNotif = '';
 let txtRecibeAyuda = '';
 let txtSaltar = '';
-let txtversion = 'V3.10';
+let txtversion = 'V3.12';
+let tiempoCarga = parseInt('5000');
+
+let path = RNFS.DocumentDirectoryPath + '/test.txt';
 
 const {width, height} = Dimensions.get('window');
 
@@ -28,29 +34,122 @@ const fontSizeTextSec = width <= 380 ? 15 : 20;
 const fontSizeInfo = width <= 380 ? 12 : 15;
 
 class SliderScreen extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      slider: true,
+      paramsTrue: false,
+      slideTrue: true,
+      parametros: [],
+    };
+  }
+
   saltarPress = () => {
     this.props.navigation.navigate('Formulario', {
       dato: JSON.stringify({...this.state}),
     });
+    this.crearArchivo();
   };
-  state = {
-    slider: true,
-    paramsTrue: false,
-    parametros: [],
-  };
+  async crearArchivo() {
+    RNFS.writeFile(path, 'Slide validado', 'utf8')
+      .then((success) => {
+        //('FILE WRITTEN!');
+      })
+      .catch((err) => {
+        //(err.message);
+      });
+  }
 
   async componentDidMount() {
-    this.cargarParametros();
-    setTimeout(() => {
-      if (this.state.slider) {
-        this.render();
-        this.state.slider = false;
-        this.props.navigation.navigate('Home', {
-          dato: JSON.stringify({...this.state}),
-        });
-      }
-    }, 5500);
+    this.requestCameraPermission();
+    await this.cargarParametros();
   }
+
+  async cambioSlide() {
+    let res = await this.comprobarInternet();
+    let objTue = await this.leerArchivo();
+    if (res) {
+      setTimeout(() => {
+        if (this.state.slider) {
+          this.render();
+          if (objTue === 'Slide validado') {
+            this.props.navigation.navigate('Formulario', {
+              dato: JSON.stringify({...this.state}),
+            });
+            this.setState({slideTrue: true});
+          } else {
+            this.setState({slider: false});
+            this.props.navigation.navigate('Home', {
+              dato: JSON.stringify({...this.state}),
+            });
+          }
+        }
+      }, tiempoCarga);
+    } else if (!res) {
+      Alert.alert(
+        '',
+        'HUECOSMED necesita acceso a una conexión internet para continuar.',
+        [{text: 'Aceptar'}],
+        {
+          cancelable: false,
+        },
+      );
+    }
+  }
+
+  async comprobarInternet() {
+    return await fetch('https://www.medellin.gov.co/')
+      .then(function (response) {
+        if (response.ok) {
+          return response;
+        }
+      })
+      .then(function (response) {
+        return true;
+      })
+      .catch(function (error) {
+        return false;
+      });
+  }
+
+  async leerArchivo() {
+    return RNFS.readFile(path, 'ascii')
+      .then((res) => {
+        return res;
+      })
+      .catch((err) => {
+        //console.log(err.message, err.code);
+        return '';
+      });
+  }
+  async requestCameraPermission() {
+    try {
+      await PermissionsAndroid.requestMultiple([
+        PermissionsAndroid.PERMISSIONS.CAMERA,
+        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+      ]);
+
+      const permissionCamera = await PermissionsAndroid.check(
+        'android.permission.CAMERA',
+      );
+      const permissionWriteStorage = await PermissionsAndroid.check(
+        'android.permission.WRITE_EXTERNAL_STORAGE',
+      );
+      if (permissionCamera && permissionWriteStorage) {
+        await this.cambioSlide();
+      }
+      if (!permissionCamera || !permissionWriteStorage) {
+        return {
+          error: 'Failed to get the required permissions.',
+        };
+      }
+    } catch (error) {
+      return {
+        error: 'Failed to get the required permissions.',
+      };
+    }
+  }
+
   async cargarParametros() {
     let response = await fetch(
       'https://www.medellin.gov.co/HuecosMed/cargardatos.hyg?str_sql=eyJTUUwiOiJTUUxfSFVFQ09TX0NPTlNVTFRBUl9QQVJBTUVUUk9TIiwiTiI6MCwiREFUT1MiOnt9fQ%3D%3D',
@@ -67,18 +166,18 @@ class SliderScreen extends React.Component {
     txtRecibeAyuda = textos.RECIBEINFO;
     txtLaApp = textos.LAAPP;
     txtversion = textos.VERS;
+    tiempoCarga = parseInt(textos.TIEMPO);
     this.state.paramsTrue = true;
   }
 
   async componentDidUpdate() {
     if (this.props.route.params != undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
-      console.log(datosRes);
       this.state.slider = datosRes.slider;
       this.props.route.params = undefined;
     }
     if (!this.state.paramsTrue) {
-      this.cargarParametros();
+      await this.cargarParametros();
     }
   }
 
@@ -88,6 +187,7 @@ class SliderScreen extends React.Component {
         autoplay={false}
         showsButtons={false}
         showsPagination={false}
+        paginationStyle={styles.paginationStyle}
         ref="swiper"
         effect="Fade"
         preloadImages={false}
@@ -138,7 +238,12 @@ class SliderScreen extends React.Component {
             <Text style={styles.reportarDanos}>{txtRecibeNotif}</Text>
             <Text style={styles.reportarTxt}>{txtRecibeAyuda}</Text>
             <Pressable
-              style={stylesSlide.btnSlide}
+              style={[
+                stylesSlide.btnSlide,
+                {
+                  marginTop: this.state.logoMarginTop,
+                },
+              ]}
               onPress={() => {
                 this.refs.swiper.scrollBy(-1);
               }}>
@@ -301,9 +406,9 @@ const styles = StyleSheet.create({
   },
   btn: {
     textAlign: 'center',
-    bottom: 0,
-    position: 'absolute',
+    bottom: 2,
     alignItems: 'center',
+    padding: 10,
     fontFamily: 'MavenPro-Bold',
     zIndex: 10,
   },
@@ -313,6 +418,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: Colors.write,
+  },
+  paginationStyle: {
+    backgroundColor: 'red',
   },
   image: {
     zIndex: 1,

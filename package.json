@@ -25,6 +25,7 @@
     "react-native": "^0.63.4",
     "react-native-autocomplete-input": "^4.2.0",
     "react-native-camera": "git+https://git@github.com/react-native-community/react-native-camera.git",
+    "react-native-fs": "^2.16.6",
     "react-native-gesture-handler": "^1.9.0",
     "react-native-image-picker": "^2.3.1",
     "react-native-reanimated": "^1.13.2",
