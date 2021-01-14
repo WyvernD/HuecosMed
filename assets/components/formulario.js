@@ -38,7 +38,6 @@ let txtGalery = '';
 let campoObligatorio = '';
 let alertGalery = '';
 let alertFoto = '';
-let count = 1;
 
 const fontSizehead = width <= 380 ? 15 : 20;
 const fontSizeText = width <= 380 ? 8 : 12;
@@ -60,6 +59,8 @@ class getFormulario extends React.Component {
       selectedItem: {},
       load: true,
       parametros: [],
+      dirInicial: false,
+      dirInicialTotal: 1,
     };
   }
 
@@ -95,7 +96,7 @@ class getFormulario extends React.Component {
       this.props.route.params = undefined;
     }
     this.cargarParametros();
-    this.cargarDatos();
+    await this.cargarDatos();
     if (Platform.OS === 'ios') {
       Geolocation.getCurrentPosition(
         //Will give you the current location
@@ -108,7 +109,7 @@ class getFormulario extends React.Component {
         (error) => {
           alert(error.message);
         },
-        {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000 },
+        {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000},
       );
     } else {
       try {
@@ -223,12 +224,20 @@ class getFormulario extends React.Component {
 
   coordinatesFromMap = (data) => {
     let datos = JSON.parse(data);
+    console.log(datos);
     this.llenarUbicacion(datos.lat, datos.lng);
     if (
       this.state.data.location === undefined ||
       this.state.data.location === ''
     ) {
-      this.getDirGeoCod(datos.lat, datos.lng);
+      if (this.state.dirInicial) {
+        this.getDirGeoCod(datos.lat, datos.lng);
+      } else {
+        if (this.state.dirInicialTotal >= 2) {
+          this.setState({dirInicial: true});
+        }
+        this.setState({dirInicialTotal: this.state.dirInicialTotal + 1});
+      }
     }
   };
 
@@ -304,11 +313,12 @@ class getFormulario extends React.Component {
           this.setLoadVisible(false);
         }
       },
-      {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000 },
+      {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000},
     );
   };
+
   async ActivarGps() {
-  //  console.log('Activar GPS');
+    //  console.log('Activar GPS');
   }
 
   llenarUbicacion = (currentLatitude, currentLongitude) => {
