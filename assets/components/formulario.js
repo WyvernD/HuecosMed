@@ -97,21 +97,7 @@ class getFormulario extends React.Component {
     }
     this.cargarParametros();
     await this.cargarDatos();
-    if (Platform.OS === 'ios') {
-      Geolocation.getCurrentPosition(
-        //Will give you the current location
-        (position) => {
-          const currentLongitude = JSON.stringify(position.coords.longitude);
-          const currentLatitude = JSON.stringify(position.coords.latitude);
-          this.refs.Map_Ref.injectJavaScript(`
-          mymap.setView([${currentLatitude}, ${currentLongitude}], 18)`);
-        },
-        (error) => {
-          alert(error.message);
-        },
-        {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000},
-      );
-    } else {
+    if (Platform.OS !== 'ios') {
       try {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,

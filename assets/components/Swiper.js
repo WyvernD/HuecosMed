@@ -8,6 +8,7 @@ import {
   Alert,
   Image,
   Dimensions,
+  Platform,
   Pressable,
 } from 'react-native';
 import Swiper from 'react-native-swiper';
@@ -123,30 +124,34 @@ class SliderScreen extends React.Component {
       });
   }
   async requestCameraPermission() {
-    try {
-      await PermissionsAndroid.requestMultiple([
-        PermissionsAndroid.PERMISSIONS.CAMERA,
-        PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      ]);
+    if (Platform.OS !== 'ios') {
+      try {
+        await PermissionsAndroid.requestMultiple([
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        ]);
 
-      const permissionCamera = await PermissionsAndroid.check(
-        'android.permission.CAMERA',
-      );
-      const permissionWriteStorage = await PermissionsAndroid.check(
-        'android.permission.WRITE_EXTERNAL_STORAGE',
-      );
-      if (permissionCamera && permissionWriteStorage) {
-        await this.cambioSlide();
-      }
-      if (!permissionCamera || !permissionWriteStorage) {
+        const permissionCamera = await PermissionsAndroid.check(
+          'android.permission.CAMERA',
+        );
+        const permissionWriteStorage = await PermissionsAndroid.check(
+          'android.permission.WRITE_EXTERNAL_STORAGE',
+        );
+        if (permissionCamera && permissionWriteStorage) {
+          await this.cambioSlide();
+        }
+        if (!permissionCamera || !permissionWriteStorage) {
+          return {
+            error: 'Failed to get the required permissions.',
+          };
+        }
+      } catch (error) {
         return {
           error: 'Failed to get the required permissions.',
         };
       }
-    } catch (error) {
-      return {
-        error: 'Failed to get the required permissions.',
-      };
+    } else if (Platform.OS === 'ios') {
+      await this.cambioSlide();
     }
   }
 
