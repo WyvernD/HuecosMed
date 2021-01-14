@@ -108,7 +108,7 @@ class getFormulario extends React.Component {
         (error) => {
           alert(error.message);
         },
-        {enableHighAccuracy: true, timeout: 20000, maximumAge: 0},
+        {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000 },
       );
     } else {
       try {
@@ -304,7 +304,7 @@ class getFormulario extends React.Component {
           this.setLoadVisible(false);
         }
       },
-      {enableHighAccuracy: true, timeout: 2000, maximumAge: 0},
+      {enableHighAccuracy: true, timeout: 5000, maximumAge: 3600000 },
     );
   };
   async ActivarGps() {
