@@ -90,7 +90,7 @@ class getFormulario extends React.Component {
   }
 
   async componentDidMount() {
-    if (this.props.route.params != undefined) {
+    if (this.props.route.params !== undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
       this.state.parametros = datosRes.parametros;
       this.props.route.params = undefined;
@@ -153,7 +153,6 @@ class getFormulario extends React.Component {
         // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
         // console.log('User tapped custom button: ', response.customButton);
-        alert(response.customButton);
       } else {
         //const source = {uri: response.uri};
         // console.log('response', JSON.stringify(response));
@@ -337,9 +336,7 @@ class getFormulario extends React.Component {
         .then((responseJson) => {
           this.setState({filterData: responseJson[0].title.split(',')});
         })
-        .catch((error) => {
-          // console.error(error);
-        });
+        .catch(() => {});
     } else {
       this.setState({filterData: []});
     }
@@ -369,9 +366,7 @@ class getFormulario extends React.Component {
             );
           }
         })
-        .catch((error) => {
-          // console.error(error);
-        });
+        .catch(() => {});
     } else {
       this.setState({selectedItem: ''});
       this.setState({filterData: []});
@@ -478,8 +473,8 @@ class getFormulario extends React.Component {
       <View style={{height: inputAlto}}>
         <Pressable
           style={
-            this.state.data.location == undefined ||
-            this.state.data.location == ''
+            this.state.data.location === undefined ||
+            this.state.data.location === ''
               ? styles.btnOculto
               : styles.btnUbic
           }>
@@ -505,7 +500,7 @@ class getFormulario extends React.Component {
           hideResults={false}
           keyExtractor={(item, i) => i.toString()}
           onChangeText={(text) => this.searchDirection(text)}
-          renderItem={({item, i}) => (
+          renderItem={({item}) => (
             <Pressable
               style={styles.SearchBoxTouch}
               onPress={() => {
@@ -526,8 +521,8 @@ class getFormulario extends React.Component {
         />
         <Pressable
           style={
-            this.state.data.location == undefined ||
-            this.state.data.location == ''
+            this.state.data.location === undefined ||
+            this.state.data.location === ''
               ? styles.btnOculto
               : styles.btnLimpiar
           }

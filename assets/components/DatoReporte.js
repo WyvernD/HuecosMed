@@ -20,7 +20,6 @@ import ImagePicker from 'react-native-image-picker';
 
 const {width, height} = Dimensions.get('window');
 const urlRoot = 'https://www.medellin.gov.co';
-const encode64 = require('../libs/B64');
 
 let txtDatosRep = 'Datos del reporte';
 let txtUbicacion = 'Ubicación actual del daño en la via';
@@ -32,8 +31,6 @@ let txtEmail = 'Ingresa el correo electrónico de quien reporta';
 let txtEmailAyuda =
   'Al correo llegarán las notificaciones de avances en la solución del daño';
 
-const fontSizehead = width <= 380 ? 15 : 20;
-const fontSizeText = width <= 380 ? 8 : 12;
 const fontSizeTitle = width <= 380 ? 10 : 12;
 const fontSizeAyudas = width <= 380 ? 7 : 9;
 const inputAlto = width <= 380 ? 35 : 40;
@@ -46,7 +43,7 @@ const isEmail = (val) => {
   } else {
     return val;
   }
-}
+};
 
 class DatosReporte extends React.Component {
   state = {
@@ -63,7 +60,7 @@ class DatosReporte extends React.Component {
   };
 
   componentDidUpdate() {
-    if (this.props.route.params != undefined) {
+    if (this.props.route.params !== undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
       this.state.data = datosRes.data;
       this.state.rutaGuardado = datosRes.rutaGuardado;
@@ -91,7 +88,7 @@ class DatosReporte extends React.Component {
   async componentDidMount() {
     this.setLoadVisible(true);
     this.cargarParametros();
-    if (this.props.route.params != undefined) {
+    if (this.props.route.params !== undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
       this.state.data = datosRes.data;
       this.state.rutaGuardado = datosRes.rutaGuardado;
@@ -110,10 +107,10 @@ class DatosReporte extends React.Component {
   validarReporte = () => {
     this.setLoadVisible(true);
     if (
-      this.state.data.email != undefined &&
-      this.state.data.email != '' &&
-      this.state.data.location != undefined &&
-      this.state.data.location != ''
+      this.state.data.email !== undefined &&
+      this.state.data.email !== '' &&
+      this.state.data.location !== undefined &&
+      this.state.data.location !== ''
     ) {
       let emailTru = isEmail(this.state.data.email);
       if (emailTru !== 'Invalid Email') {
@@ -129,15 +126,11 @@ class DatosReporte extends React.Component {
       }
     } else {
       this.setLoadVisible(false);
-      Alert.alert(
-        'Campo obligatorio',
-        'El campo correo electrónico es obligatorio.',
-        [{text: 'Aceptar'}],
-        {cancelable: false},
-      );
+      Alert.alert('Campo obligatorio', campoObligatorio, [{text: 'Aceptar'}], {
+        cancelable: false,
+      });
     }
   };
-
 
   async guardarDatos() {
     this.setLoadVisible(true);
@@ -169,10 +162,10 @@ class DatosReporte extends React.Component {
     };
     fetch(url, requestOptions)
       .then((e) => e.text())
-      .then((data) => {
-        this.onMensage(data);
+      .then((res) => {
+        this.onMensage(res);
       })
-      .catch((error) => {
+      .catch(() => {
         this.setLoadVisible(false);
       });
   }
@@ -194,7 +187,9 @@ class DatosReporte extends React.Component {
       Alert.alert(
         'Error',
         'comuniquese con su proveedor de servicios',
-        [{text: 'Aceptar'}],{cancelable: false});
+        [{text: 'Aceptar'}],
+        {cancelable: false},
+      );
     }
     this.setLoadVisible(false);
   }
@@ -205,7 +200,7 @@ class DatosReporte extends React.Component {
 
   onsubmit = () => {
     const data = this.state.data;
-    //console.log(data.email);
+    console.log(data);
   };
 
   renderFileData() {
@@ -261,8 +256,8 @@ class DatosReporte extends React.Component {
                   <Text style={styles.Text}>{txtFotoEvidencia}</Text>
                   <View
                     style={
-                      this.state.data.urlFoto == undefined ||
-                      this.state.data.urlFoto == ''
+                      this.state.data.urlFoto === undefined ||
+                      this.state.data.urlFoto === ''
                         ? styles.btnOculto
                         : styles.campoImagen
                     }>
@@ -289,7 +284,7 @@ class DatosReporte extends React.Component {
                     onChangeText={(event) =>
                       this.onchangeInputs(event, 'email')
                     }
-                    onSubmitEditing={(e) =>
+                    onSubmitEditing={() =>
                       this.onchangeInputs(this.state.data.email, 'email')
                     }
                   />
@@ -392,7 +387,6 @@ class DatosReporte extends React.Component {
         // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
         // console.log('User tapped custom button: ', response.customButton);
-        alert(response.customButton);
       } else {
         // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
@@ -419,7 +413,6 @@ class DatosReporte extends React.Component {
         // console.log('ImagePicker Error: ', response.error);
       } else if (response.customButton) {
         // console.log('User tapped custom button: ', response.customButton);
-        alert(response.customButton);
       } else {
         // console.log('response', JSON.stringify(response));
         this.state.data.urlFoto = response.uri;
@@ -493,7 +486,7 @@ const styles = StyleSheet.create({
   TextFooter: {
     color: '#575a5d',
     marginTop: 5,
-    fontSize: 15,
+    fontSize: fontSizeTitle,
     textAlign: 'center',
   },
   openButton: {
@@ -570,6 +563,7 @@ const styles = StyleSheet.create({
     height: inputAlto,
     borderRadius: 18,
     borderColor: '#B7B7B7',
+    fontSize: fontSizeInput,
     borderWidth: 1,
     margin: 0,
     padding: 0,

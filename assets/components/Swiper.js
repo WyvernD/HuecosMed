@@ -23,8 +23,8 @@ let txtRecibe = '';
 let txtRecibeNotif = '';
 let txtRecibeAyuda = '';
 let txtSaltar = '';
-let txtversion = 'V3.12';
-let tiempoCarga = parseInt('5000');
+let txtversion = 'V3.13';
+let tiempoCarga = 5000;
 
 let path = RNFS.DocumentDirectoryPath + '/test.txt';
 
@@ -49,20 +49,16 @@ class SliderScreen extends React.Component {
     this.props.navigation.navigate('Formulario', {
       dato: JSON.stringify({...this.state}),
     });
-    this.crearArchivo();
+    this.crearArchivo().then(() => {});
   };
   async crearArchivo() {
     RNFS.writeFile(path, 'Slide validado', 'utf8')
-      .then((success) => {
-        //('FILE WRITTEN!');
-      })
-      .catch((err) => {
-        //(err.message);
-      });
+      .then(() => {})
+      .catch(() => {});
   }
 
   async componentDidMount() {
-    this.requestCameraPermission();
+    await this.requestCameraPermission();
     await this.cargarParametros();
   }
 
@@ -105,10 +101,10 @@ class SliderScreen extends React.Component {
           return response;
         }
       })
-      .then(function (response) {
+      .then(function () {
         return true;
       })
-      .catch(function (error) {
+      .catch(function () {
         return false;
       });
   }
@@ -118,7 +114,7 @@ class SliderScreen extends React.Component {
       .then((res) => {
         return res;
       })
-      .catch((err) => {
+      .catch(() => {
         //console.log(err.message, err.code);
         return '';
       });
@@ -176,7 +172,7 @@ class SliderScreen extends React.Component {
   }
 
   async componentDidUpdate() {
-    if (this.props.route.params != undefined) {
+    if (this.props.route.params !== undefined) {
       const datosRes = JSON.parse(this.props.route.params.dato);
       this.state.slider = datosRes.slider;
       this.props.route.params = undefined;
